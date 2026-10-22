@@ -1,0 +1,3241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Atelier Veston 3D — Thiết kế & may đo áo vest nam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<style>
+:root{--bg:#fff;--card:#f2f2f7;--panel:rgba(255,255,255,.86);--track:rgba(120,120,128,.22);--fill:rgba(120,120,128,.12);--sep:rgba(60,60,67,.16);--t1:#1d1d1f;--t2:#6e6e73;--t3:#8e8e93;--ac:#0071e3;--act:rgba(0,113,227,.09);--segon:#fff;--glass:rgba(255,255,255,.74);color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--panel:rgba(22,22,24,.86);--fill:rgba(120,120,128,.24);--sep:rgba(84,84,88,.55);--t1:#f5f5f7;--t2:#a1a1a6;--ac:#0a84ff;--act:rgba(10,132,255,.16);--segon:#636366;--track:rgba(120,120,128,.36);--glass:rgba(44,44,46,.74)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--t1);font:14px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-font-smoothing:antialiased}
+input,select{user-select:text}
+button,label{font:inherit;color:inherit;cursor:pointer}
+button{border:0;background:none;padding:0}
+.hidden{display:none!important}.opacity-0{opacity:0}.opacity-100{opacity:1}.translate-y-2{transform:translateY(8px)}.translate-y-0{transform:none}
+.font-mono-tech{font-variant-numeric:tabular-nums}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.35);border-radius:8px;border:2px solid transparent;background-clip:content-box}
+/* header */
+.top{flex:none;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 16px 0;display:flex;align-items:center;justify-content:space-between;background:var(--panel);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep);z-index:5}
+.brand{font-size:17px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}.brand i{font-style:normal;color:var(--t3);font-weight:500;margin-left:6px}
+.acts{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:9px;background:var(--fill);font-size:13px;font-weight:500;white-space:nowrap;transition:opacity .15s}
+.btn:active{opacity:.6}.btn.pri{background:var(--ac);color:#fff}.btn.sm{height:26px;padding:0 10px;font-size:12px}
+.seg{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px}.seg.full{display:flex}.seg.full .seg-btn{flex:1}
+.seg-btn,.tab-btn{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;white-space:nowrap;transition:background .15s}
+.seg-btn.on,.tab-btn.active{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.tag{font-size:12px;color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0}.tag.on{color:var(--ac)}
+/* layout */
+main{flex:1;min-height:0;display:flex}
+.panel{flex:none;width:300px;overflow-y:auto;background:var(--bg);padding:16px;display:flex;flex-direction:column;gap:24px}
+.left{border-right:.5px solid var(--sep)}
+.right{width:348px;padding:0;gap:0;border-left:.5px solid var(--sep);overflow:hidden}
+.rtabs{display:flex;margin:12px 16px;flex:none}.rtabs .tab-btn{flex:1}
+.pane{flex:1;overflow-y:auto;padding:4px 16px 28px;display:flex;flex-direction:column;gap:24px}
+.stage{position:relative;flex:1;min-width:0;overflow:hidden}
+#canvas-container{position:absolute;inset:0}#viewport-canvas{display:block;width:100%;height:100%;outline:0}
+/* sections */
+.sec{display:flex;flex-direction:column;gap:8px}
+.h{display:flex;justify-content:space-between;align-items:center;min-height:26px;padding:0 4px;font-size:13px;font-weight:600;color:var(--t2)}
+.sub{font-size:12px;color:var(--t3);padding:0 4px}
+.note{margin:0;padding:0 4px;font-size:11px;color:var(--t3)}
+.grp,.sl-list{background:var(--card);border-radius:12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:8px;padding:10px 14px;min-height:44px}.row+.row{border-top:.5px solid var(--sep)}
+.row>span:first-child{flex:1;min-width:0}.val{color:var(--t2);font-variant-numeric:tabular-nums}
+.tiles{display:grid;gap:8px}.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}
+.opt-btn{min-width:0;padding:10px 8px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 .5px var(--sep);text-align:center;transition:box-shadow .15s,background .15s}
+.opt-btn.l,#fabric-grid .opt-btn{text-align:left;padding:10px 12px}
+.opt-btn>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt-btn>div:first-child{font-size:13px;font-weight:600}.opt-btn>div+div{font-size:11px;color:var(--t3);margin-top:1px}
+.opt-btn.active{background:var(--act);box-shadow:inset 0 0 0 2px var(--ac)}
+.tiles>.btn{height:40px;border-radius:12px;background:var(--card)}
+/* controls */
+.sw{-webkit-appearance:none;appearance:none;flex:none;width:44px;height:26px;border-radius:13px;background:var(--track);position:relative;cursor:pointer;transition:background .2s;margin:0}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.sw:checked{background:#34c759}.sw:checked::after{transform:translateX(18px)}
+input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:4px;border-radius:2px;background:var(--track);outline:0;margin:12px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+input[type=color]{-webkit-appearance:none;appearance:none;width:30px;height:30px;padding:0;border:0;background:none;cursor:pointer}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border:.5px solid var(--sep);border-radius:50%}input[type=color]::-moz-color-swatch{border:.5px solid var(--sep);border-radius:50%}
+.sel{background:var(--bg);border:0;border-radius:8px;padding:4px 8px;color:var(--ac);font:inherit;font-size:12px;font-weight:500}
+.inp{flex:1;min-width:0;height:36px;border:0;border-radius:10px;background:var(--card);padding:0 12px;font:inherit;color:var(--t1);box-shadow:inset 0 0 0 .5px var(--sep);outline:0}.inp:focus{box-shadow:inset 0 0 0 2px var(--ac)}
+.saverow{display:flex;gap:8px}.saverow .btn{height:36px}
+/* generated by JS */
+.sl-list>div{padding:12px 14px}.sl-list>div+div{border-top:.5px solid var(--sep)}
+.sl-list>div>div:first-child{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.sl-list>div>div>div{display:flex;align-items:center;gap:4px;flex:none}
+.sl-list input[type=range]{margin:14px 0 4px}
+.sl-list input[type=number]{-moz-appearance:textfield;width:64px;height:28px;border:0;border-radius:8px;background:var(--bg);color:var(--ac);text-align:right;padding:0 8px;font:inherit;font-weight:500;font-variant-numeric:tabular-nums;outline:0}
+.sl-list input::-webkit-inner-spin-button{display:none}
+.sl-list input[type=number]+span{color:var(--t3);font-size:11px;min-width:16px}
+#color-swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+#color-swatches button{aspect-ratio:1;border-radius:50%;border:.5px solid var(--sep)!important}
+#curated-presets-list,#user-presets-list{display:grid;gap:8px}
+#curated-presets-list>div,#user-presets-list>div{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:12px 14px;cursor:pointer}
+#curated-presets-list>div>div>div:first-child{font-size:14px;font-weight:600}
+#curated-presets-list>div>div>div+div{font-size:12px;color:var(--t2);margin-top:2px}
+#curated-presets-list>div>span{flex:none;font-size:12px;font-weight:500;color:var(--ac);background:var(--act);padding:4px 12px;border-radius:999px}
+#user-presets-list>div{cursor:default;font-size:13px;font-weight:500}#user-presets-list button{color:var(--ac);font-size:13px;font-weight:500}
+#measure-readout>div{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;padding:9px 14px;font-size:13px;border-top:.5px solid var(--sep)}
+#measure-readout>div:first-child{border:0;font-size:11px;padding-bottom:4px}
+#measure-readout>div:first-child span{color:var(--t3)!important;font-weight:400!important}
+#measure-readout .text-right{text-align:right}
+#measure-readout>div span:nth-child(1){color:var(--t1)}#measure-readout>div span:nth-child(2){color:var(--ac);font-weight:600}#measure-readout>div span:nth-child(3){color:var(--t1)}#measure-readout>div span:nth-child(4){color:var(--t3)}
+ 
+/* nút do JS tự gán class: nhận diện trạng thái bật bằng class gốc */
+#env-dark,#env-neutral,#env-light,#vmode-pbr,#vmode-seams,#vmode-wireframe{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;white-space:nowrap;background:none;color:var(--t1)}
+#env-dark[class*="bg-amber"],#env-neutral[class*="bg-amber"],#env-light[class*="bg-amber"]{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+#vmode-pbr[class*="bg-amber"],#vmode-seams[class*="bg-amber"],#vmode-wireframe[class*="bg-amber"]{background:var(--fill)}
+#badge-breast-type,[id^=hand-stitch-status]{font-size:12px;color:var(--t3);background:none;border:0;padding:0;font-weight:400}
+#badge-breast-type[class*="bg-amber"],[id^=hand-stitch-status][class*="bg-amber"]{color:var(--ac)}
+/* stage overlays */
+.glass{position:absolute;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:.5px solid var(--sep);box-shadow:0 2px 14px rgba(0,0,0,.08)}
+.glass .seg-btn.on{background:var(--fill);box-shadow:none}
+.hud{top:12px;left:12px;padding:8px 12px;border-radius:12px;pointer-events:none}
+#hud-style-summary{font-weight:600;font-size:13px}
+.hud>div+div{margin-top:2px;font-size:11px;color:var(--t2);font-variant-numeric:tabular-nums}.hud>div+div span+span{margin-left:10px}
+.vmodes{top:12px;right:12px;display:flex;gap:2px;padding:3px;border-radius:11px}
+.cams{bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:2px;padding:4px;border-radius:999px;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}
+.cams::-webkit-scrollbar{display:none}.cams .seg-btn{border-radius:999px}
+.hint{position:absolute;left:14px;bottom:20px;font-size:11px;color:var(--t3);pointer-events:none}
+#toast-box{position:absolute;left:0;right:0;bottom:66px;margin:auto;width:max-content;max-width:90%;padding:9px 16px;border-radius:999px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid var(--sep);font-size:13px;font-weight:500;pointer-events:none;transition:opacity .25s,transform .25s}
+.mtabs,.grab{display:none}
+.ibtn{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--t3);transition:color .15s,background .15s}.ibtn:hover{background:var(--fill)}.ibtn.on{color:var(--ac)}
+@media(min-width:961px){body.lc .left{display:none}body.rc .right{display:none}}
+@media(max-width:1180px){.panel{width:276px}.right{width:324px}.hint{display:none}}
+@media(max-width:960px){
+ main{flex-direction:column}
+ .stage{order:-2;flex:none;height:42dvh}
+ body.mc .left,body.mc .right{display:none}body.mc .stage{height:auto;flex:1}
+ .grab{display:flex;order:-1;flex:none;justify-content:center;align-items:center;height:22px;background:var(--bg);border-top:.5px solid var(--sep)}.grab span{width:36px;height:4px;border-radius:2px;background:rgba(120,120,128,.4)}
+ .panel,.right{width:100%;flex:1;min-height:0;border:0}
+ .right>.rtabs{display:none}
+ body:not([data-m=style]) .left,body[data-m=style] .right{display:none}
+ .envseg,.hud,.hide-m{display:none}
+ .vmodes{right:auto;left:50%;transform:translateX(-50%)}
+ .top{padding-left:12px;padding-right:12px}.acts{gap:6px}.btn{padding:0 11px}
+ .mtabs{display:grid;grid-template-columns:repeat(5,1fr);flex:none;background:var(--panel);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom)}
+ .mtabs button{padding:7px 0 6px;font-size:10px;font-weight:500;color:var(--t3)}.mtabs button.on{color:var(--ac)}
+ input[type=number],.inp,.sel{font-size:16px!important}
+ .glass .seg-btn,.vmodes button{padding:4px 9px!important;font-size:11px!important}.vmodes{top:8px;padding:2px}.cams{bottom:8px;padding:2px}#toast-box{bottom:44px}
+}
+</style>
+</head>
+<body data-m="style">
+<header class="top">
+ <div class="acts"><button class="ibtn on hide-m" data-t="l" onclick="ui.t('l')" title="Ẩn/hiện panel kiểu dáng"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="3" width="14.5" height="12" rx="2.5"/><path d="M6.5 3v12"/></svg></button><div class="brand">Atelier Veston<i>3D</i></div></div>
+ <div class="acts">
+  <div class="seg envseg"><button id="env-dark" onclick="app.setStudioTheme('dark')" class="seg-btn on">Tối</button><button id="env-neutral" onclick="app.setStudioTheme('neutral')" class="seg-btn">Trung tính</button><button id="env-light" onclick="app.setStudioTheme('light')" class="seg-btn">Sáng</button></div>
+  <button class="btn hide-m" onclick="app.resetToDefault()">Mặc định</button>
+  <button class="btn" onclick="app.captureScreenshot()">Chụp ảnh</button>
+  <button class="btn pri" onclick="app.exportGLB()">Xuất GLB</button>
+  <button class="ibtn on hide-m" data-t="r" onclick="ui.t('r')" title="Ẩn/hiện panel chi tiết"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="3" width="14.5" height="12" rx="2.5"/><path d="M11.5 3v12"/></svg></button>
+ </div>
+</header>
+<main>
+ <aside class="panel left"><div class="sec"><div class="h"><span>Hàng cúc</span><span id="badge-breast-type" class="tag">Single-Breasted</span></div><div class="sub">Một hàng cúc</div><div class="tiles c3"><button data-closure="1_btn" onclick="app.setStyleOption('closure','1_btn')" class="opt-btn"><div>1 cúc</div><div>V-zone sâu</div></button><button data-closure="2_btn" onclick="app.setStyleOption('closure','2_btn')" class="opt-btn active"><div>2 cúc</div><div>Chuẩn sartorial</div></button><button data-closure="3_btn" onclick="app.setStyleOption('closure','3_btn')" class="opt-btn"><div>3 cúc</div><div>Cổ điển Anh</div></button></div><div class="sub">Hai hàng cúc (Double-Breasted)</div><div class="tiles c2"><button data-closure="db_4x2" onclick="app.setStyleOption('closure','db_4x2')" class="opt-btn l"><div>4 cúc · 4×2</div><div>2 cột × 2 hàng</div></button><button data-closure="db_6x2" onclick="app.setStyleOption('closure','db_6x2')" class="opt-btn l"><div>6 cúc · 6×2</div><div>2 cột × 3 hàng</div></button></div></div><div class="sec"><div class="h"><span>Kiểu ve áo</span></div><div class="tiles c3"><button data-lapel="notch" onclick="app.setStyleOption('lapel','notch')" class="opt-btn active"><div>Ve chữ K</div><div>Notch</div></button><button data-lapel="peak" onclick="app.setStyleOption('lapel','peak')" class="opt-btn"><div>Ve nhọn</div><div>Peak</div></button><button data-lapel="shawl" onclick="app.setStyleOption('lapel','shawl')" class="opt-btn"><div>Ve sam</div><div>Shawl</div></button></div><div class="grp"><div class="row"><span>Phủ lụa satin mặt ve</span><input type="checkbox" class="sw" id="toggle-satin-lapel" onchange="app.setBooleanOption('satinLapel', this.checked)"></div></div></div><div class="sec"><div class="h"><span>Túi áo</span></div><div class="tiles c3"><button data-pocket="flap" onclick="app.setStyleOption('pocket','flap')" class="opt-btn active"><div>Túi nắp</div><div>Flap</div></button><button data-pocket="jetted" onclick="app.setStyleOption('pocket','jetted')" class="opt-btn"><div>Túi viền</div><div>Jetted</div></button><button data-pocket="patch" onclick="app.setStyleOption('pocket','patch')" class="opt-btn"><div>Túi đắp</div><div>Patch</div></button></div><div class="grp"><div class="row"><span>Túi ngực</span><input type="checkbox" class="sw" id="toggle-breast-pocket" checked onchange="app.setBooleanOption('breastPocket', this.checked)"></div><div class="row"><span>Khăn túi ngực</span><input type="checkbox" class="sw" id="toggle-pocket-square" checked onchange="app.setBooleanOption('pocketSquare', this.checked)"></div><div class="row"><span>Túi vé bên phải</span><input type="checkbox" class="sw" id="toggle-ticket-pocket" checked onchange="app.setBooleanOption('ticketPocket', this.checked)"></div><div class="row"><span>Đường chỉ thủ công</span><span id="hand-stitch-status-left" class="tag">Tắt</span><input type="checkbox" class="sw" id="toggle-hand-stitch-left" onchange="app.toggleHandStitching(this.checked)"></div></div></div><div class="sec"><div class="h"><span>Xẻ tà thân sau</span></div><div class="tiles c3"><button data-vent="double" onclick="app.setStyleOption('vent','double')" class="opt-btn active"><div>Xẻ 2 bên</div><div>Side vents</div></button><button data-vent="center" onclick="app.setStyleOption('vent','center')" class="opt-btn"><div>Xẻ giữa</div><div>Center vent</div></button><button data-vent="none" onclick="app.setStyleOption('vent','none')" class="opt-btn"><div>Không xẻ</div><div>Ventless</div></button></div></div><div class="sec"><div class="h"><span>Vạt áo & trang phục trong</span><button class="btn sm" onclick="app.toggleJacketOpen()">Đóng / Mở</button></div><div class="grp"><div class="row"><span>Độ mở vạt</span><span id="lbl-open-amount" class="val">0%</span></div><div class="row"><input type="range" id="rng-open-amount" min="0" max="1" step="0.02" value="0" oninput="app.setOpenAmount(parseFloat(this.value))"></div></div><div class="grp"><div class="row"><span>Sơ mi</span><input type="checkbox" class="sw" id="toggle-shirt" checked onchange="app.setBooleanOption('showShirt', this.checked)"></div><div class="row"><span>Cà vạt</span><input type="checkbox" class="sw" id="toggle-tie" checked onchange="app.setBooleanOption('showTie', this.checked)"></div><div class="row"><span>Áo gile</span><input type="checkbox" class="sw" id="toggle-trousers" checked onchange="app.setBooleanOption('showWaistcoat', this.checked)"></div></div></div></aside>
+ <section class="stage">
+  <div id="canvas-container"><canvas id="viewport-canvas"></canvas></div>
+  <div class="glass hud"><div id="hud-style-summary"></div><div><span id="hud-poly-count"></span><span id="hud-fit-badge"></span></div></div>
+  <div class="glass vmodes"><button id="vmode-pbr" onclick="app.setViewMode('pbr')" class="seg-btn on">Vật liệu</button><button id="vmode-seams" onclick="app.setViewMode('seams')" class="seg-btn">Đường ráp</button><button id="vmode-wireframe" onclick="app.setViewMode('wireframe')" class="seg-btn">Khung lưới</button></div>
+  <div class="hint">Kéo để xoay · Cuộn để zoom · Chuột phải để di chuyển</div>
+  <div class="glass cams"><button class="seg-btn" onclick="app.setCameraView('front')">Chính diện</button><button class="seg-btn" onclick="app.setCameraView('angle45L')">45° trái</button><button class="seg-btn" onclick="app.setCameraView('angle45R')">45° phải</button><button class="seg-btn" onclick="app.setCameraView('lapelZoom')">Cổ & ve</button><button class="seg-btn" onclick="app.setCameraView('side')">Ngang</button><button class="seg-btn" onclick="app.setCameraView('back')">Sau</button></div>
+  <div id="toast-box" class="opacity-0 translate-y-2"></div>
+ </section>
+ <button class="grab" onclick="ui.t('m')" aria-label="Thu/mở"><span></span></button>
+ <aside class="panel right"><div class="rtabs seg"><button id="tab-btn-body" onclick="app.switchRightTab('body')" class="tab-btn active">Số đo</button><button id="tab-btn-details" onclick="app.switchRightTab('details')" class="tab-btn">Ve & Tay</button><button id="tab-btn-fabric" onclick="app.switchRightTab('fabric')" class="tab-btn">Vải</button><button id="tab-btn-presets" onclick="app.switchRightTab('presets')" class="tab-btn">Lưu / Xuất</button></div><div id="tab-panel-body" class="pane"><div class="sec"><div class="h"><span>Số đo & phom áo (cm)</span></div><div class="seg full"><button class="seg-btn" onclick="app.applyQuickFit('slim')">Slim</button><button class="seg-btn" onclick="app.applyQuickFit('regular')">Regular</button><button class="seg-btn" onclick="app.applyQuickFit('relaxed')">Relaxed</button></div><div id="sliders-body" class="sl-list"></div></div><div class="sec"><div class="h"><span>Số đo thực trên mô hình</span></div><div id="measure-readout" class="grp"></div><p class="note">Chu vi đo trực tiếp từ lưới 3D tại từng vị trí. “Thân” là mannequin, “Áo” là áo vest đã gồm độ dư vải.</p></div></div><div id="tab-panel-details" class="pane hidden"><div class="sec"><div class="h"><span>Ve áo & bâu cổ</span></div><div id="sliders-lapel" class="sl-list"></div></div><div class="sec"><div class="h"><span>Tay áo & khuy măng-sét</span><select id="sel-cuff-buttons" class="sel" onchange="app.setCuffButtons(parseInt(this.value))"><option value="1">1 khuy</option><option value="2">2 khuy</option><option value="3">3 khuy</option><option value="4" selected>4 khuy</option><option value="5">5 khuy</option></select></div><div id="sliders-sleeve" class="sl-list"></div></div><div class="sec"><div class="h"><span>Cúc, khuyết & đường chỉ</span></div><div id="sliders-buttons" class="sl-list"></div><div class="grp"><div class="row"><span>Đường chỉ thủ công</span><span id="hand-stitch-status-right" class="tag">Tắt</span><input type="checkbox" class="sw" id="toggle-pick-stitch" onchange="app.toggleHandStitching(this.checked)"></div><div class="row"><span>Màu chỉ khâu & viền khuyết</span><input type="color" id="stitch-color-picker" value="#3a3f4d" oninput="app.setStitchColor(this.value)"></div></div></div></div><div id="tab-panel-fabric" class="pane hidden"><div class="sec"><div class="h"><span>Chất liệu vải</span></div><div id="fabric-grid" class="tiles c2"></div></div><div class="sec"><div class="h"><span>Màu vải</span><input type="color" id="fabric-color-picker" value="#1c283d" oninput="app.setFabricColor(this.value)"></div><div id="color-swatches"></div></div><div class="sec"><div class="h"><span>Vân dệt & độ nhám</span></div><div class="grp"><div class="row"><span>Mật độ vân dệt</span><span id="lbl-tex-scale" class="val">1.0x</span></div><div class="row"><input type="range" min="0.5" max="2.2" step="0.1" value="1.0" oninput="app.setTextureScale(parseFloat(this.value))"></div></div><div class="grp"><div class="row"><span>Độ nhám bề mặt</span><span id="lbl-roughness" class="val">0.72</span></div><div class="row"><input type="range" id="rng-roughness" min="0.25" max="0.95" step="0.02" value="0.72" oninput="app.setCustomRoughness(parseFloat(this.value))"></div></div></div><div class="sec"><div class="h"><span>Cúc & lụa lót</span></div><div class="tiles c2"><button data-btnmat="horn" onclick="app.setButtonMaterial('horn')" class="opt-btn l active"><div>Sừng tự nhiên</div><div>Dark buffalo horn</div></button><button data-btnmat="pearl" onclick="app.setButtonMaterial('pearl')" class="opt-btn l"><div>Xà cừ</div><div>Smoked pearl</div></button><button data-btnmat="brass" onclick="app.setButtonMaterial('brass')" class="opt-btn l"><div>Đồng mạ vàng</div><div>Blazer brass</div></button><button data-btnmat="covered" onclick="app.setButtonMaterial('covered')" class="opt-btn l"><div>Bọc lụa / vải</div><div>Satin covered</div></button></div><div class="grp"><div class="row"><span>Màu lụa lót (Bemberg)</span><input type="color" id="lining-color-picker" value="#7c1d2e" oninput="app.setLiningColor(this.value)"></div></div></div></div><div id="tab-panel-presets" class="pane hidden"><div class="sec"><div class="h"><span>Mẫu thiết kế chuẩn</span></div><div id="curated-presets-list"></div></div><div class="sec"><div class="h"><span>Lưu & xuất cấu hình</span></div><div class="saverow"><input id="input-preset-name" class="inp" type="text" placeholder="Tên mẫu vest của bạn"><button class="btn pri" onclick="app.saveUserPreset()">Lưu</button></div><div id="user-presets-list"></div><div class="tiles c2"><button class="btn" onclick="app.exportJSON()">Xuất .JSON</button><label class="btn">Nhập .JSON<input type="file" accept=".json" hidden onchange="app.importJSON(event)"></label></div></div></div></aside>
+</main>
+<nav class="mtabs" id="mtabs"><button data-m="style" onclick="ui.m('style')" class="on">Kiểu dáng</button><button data-m="body" onclick="ui.m('body')" class="">Số đo</button><button data-m="details" onclick="ui.m('details')" class="">Ve & Tay</button><button data-m="fabric" onclick="ui.m('fabric')" class="">Vải</button><button data-m="presets" onclick="ui.m('presets')" class="">Lưu</button></nav>
+<script>/* ===== DÁN TOÀN BỘ SCRIPT GỐC CỦA BẠN VÀO ĐÂY (xoá dòng này) ===== */</script>
+<script>
+const ui={t(k){const c={l:'lc',r:'rc',m:'mc'}[k],on=document.body.classList.toggle(c);document.querySelectorAll('[data-t="'+k+'"]').forEach(b=>b.classList.toggle('on',!on));},
+m(n){const b=document.body;if(b.dataset.m===n&&!b.classList.contains('mc')){b.classList.add('mc');return;}b.classList.remove('mc');b.dataset.m=n;document.querySelectorAll('#mtabs button').forEach(x=>x.classList.toggle('on',x.dataset.m===n));if(n!=='style')app.switchRightTab(n);}};
+(function(){let q;new ResizeObserver(()=>{cancelAnimationFrame(q);q=requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));}).observe(document.querySelector('.stage'));})();
+(function(){const o=window.onload,mq=matchMedia('(prefers-color-scheme: dark)'),sync=()=>typeof app!=='undefined'&&app&&app.setStudioTheme(mq.matches?'dark':'light');
+window.onload=function(){o&&o();sync();};mq.addEventListener&&mq.addEventListener('change',sync);})();
+</script>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. PARAMETRIC TAILORING SCHEMA, PBR FABRIC LIBRARY & CURATED PRESETS
+         * ============================================================================
+         */
+        const PARAMETRIC_SCHEMA = {
+            body: [
+    { key: 'height', label: 'Chiều cao tham chiếu', min: 165, max: 192, step: 1, def: 178, unit: 'cm' },
+    { key: 'shoulderWidth', label: 'Chiều rộng vai (Acromion)', min: 41, max: 52, step: 0.5, def: 46.0, unit: 'cm' },
+    { key: 'chestProjection', label: 'Căng ngực trên (dưới xương đòn)', min: -1.5, max: 2.5, step: 0.1, def: 0.0, unit: 'cm' },
+    { key: 'chest', label: 'Vòng ngực (Full Chest)', min: 88, max: 118, step: 1, def: 100, unit: 'cm' },
+    { key: 'lowerChest', label: 'Ngực dưới / sườn (trên eo trên)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+    { key: 'upperWaist', label: 'Eo trên (giữa ngực – eo)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+    { key: 'waist', label: 'Vòng eo (Natural Waist)', min: 74, max: 108, step: 1, def: 86, unit: 'cm' },
+    { key: 'lowerWaist', label: 'Eo dưới / bụng dưới', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+    { key: 'hip', label: 'Vòng hông trên (Upper Hip)', min: 88, max: 116, step: 1, def: 98, unit: 'cm' },
+    { key: 'lowHip', label: 'Hông dưới (mông)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+    { key: 'bodyCurve', label: 'Độ cong tổng thể (ngực–eo–hông)', min: 0.0, max: 1.5, step: 0.05, def: 1.0, unit: '' },
+    { key: 'jacketLength', label: 'Chiều dài áo vest', min: 68, max: 82, step: 0.5, def: 68, unit: 'cm' },
+    { key: 'fitEase', label: 'Độ ôm / Độ dư vải (Fit Ease)', min: -1.5, max: 4.0, step: 0.25, def: 0.8, unit: 'cm' },
+    { key: 'shoulderSlope', label: 'Độ xuôi vai tự nhiên', min: 10, max: 22, step: 0.5, def: 15.5, unit: '°' },
+    { key: 'hemCurve', label: 'Độ bo cong vạt gấu (Cutaway)', min: 0.0, max: 1.0, step: 0.05, def: 0.55, unit: '' }
+],
+            lapel: [
+                { key: 'lapelWidth', label: 'Bản rộng ve áo', min: 6.5, max: 12.5, step: 0.25, def: 9.6, unit: 'cm' },
+                { key: 'vZoneDepth', label: 'Độ dài ve / Độ sâu V-Zone', min: 28, max: 44, step: 0.5, def: 37.5, unit: 'cm' },
+                { key: 'gorgeHeight', label: 'Vị trí Gorge Line (Cổ–Ve)', min: 6.0, max: 11.5, step: 0.25, def: 7.8, unit: 'cm' },
+                { key: 'lapelCurve', label: 'Độ bầu cong viền ve áo', min: 0.0, max: 1.0, step: 0.05, def: 0.0, unit: '' },
+                { key: 'lapelRoll', label: 'Độ phồng bẻ ve 3D', min: 0.2, max: 2.0, step: 0.1, def: 0.4, unit: 'cm' },
+                { key: 'collarWidth', label: 'Độ rộng bâu cổ áo', min: 2.8, max: 4.8, step: 0.2, def: 3.8, unit: 'cm' },
+                { key: 'collarWidth', label: 'Độ rộng bâu cổ áo', min: 2.8, max: 4.8, step: 0.2, def: 3.8, unit: 'cm' },
+                { key: 'lapelLift', label: 'Độ cao ve áo (nâng/hạ)', min: 0.0, max: 3.5, step: 0.1, def: 1.8, unit: 'mm' }
+            ],
+            sleeve: [
+                { key: 'sleeveLength', label: 'Chiều dài tay áo', min: 56, max: 67, step: 0.5, def: 56, unit: 'cm' },
+                { key: 'bicep', label: 'Vòng bắp tay', min: 30, max: 44, step: 0.5, def: 35.5, unit: 'cm' },
+                { key: 'cuffWidth', label: 'Vòng cổ tay (Cửa tay)', min: 23, max: 31, step: 0.5, def: 26.5, unit: 'cm' }
+            ],
+            buttons: [
+                { key: 'buttonDiameter', label: 'Đường kính cúc chính', min: 1.6, max: 2.5, step: 0.05, def: 2.0, unit: 'cm' },
+                { key: 'buttonSpacing', label: 'Khoảng cách hàng cúc', min: 8.0, max: 13.5, step: 0.5, def: 10.5, unit: 'cm' },
+                { key: 'buttonEdgeOffset', label: 'Khoảng cách cúc tới mép', min: 1.8, max: 3.8, step: 0.1, def: 2.4, unit: 'cm' }
+            ]
+        };
+
+        const FABRIC_LIBRARY = [
+            { id: 'wool', name: 'Wool Super 120s', sub: 'Len lông cừu chuẩn mực', roughness: 0.72, metalness: 0.04, bump: 0.012, weave: 'twill' },
+            { id: 'worsted', name: 'Worsted Wool', sub: 'Len chải kỹ sắc nét', roughness: 0.64, metalness: 0.06, bump: 0.010, weave: 'worsted' },
+            { id: 'cashmere', name: 'Pure Cashmere', sub: 'Mềm mịn & ấm áp', roughness: 0.78, metalness: 0.03, bump: 0.015, weave: 'cashmere' },
+            { id: 'tweed', name: 'Donegal Tweed', sub: 'Vân hạt cổ điển Anh', roughness: 0.88, metalness: 0.02, bump: 0.028, weave: 'tweed' },
+            { id: 'linen', name: 'Irish Linen', sub: 'Vải lanh thoáng mát', roughness: 0.84, metalness: 0.02, bump: 0.024, weave: 'linen' },
+            { id: 'cotton', name: 'Cotton Gabardine', sub: 'Vân chéo đanh mịn', roughness: 0.74, metalness: 0.03, bump: 0.014, weave: 'twill' },
+            { id: 'velvet', name: 'Silk Velvet', sub: 'Nhung lụa dạ tiệc', roughness: 0.90, metalness: 0.12, bump: 0.020, weave: 'velvet' },
+            { id: 'silk_blend', name: 'Wool & Silk Blend', sub: 'Bóng nhẹ sang trọng', roughness: 0.48, metalness: 0.14, bump: 0.009, weave: 'silk' },
+            { id: 'poly_blend', name: 'Tech Travel Wool', sub: 'Chống nhăn hiện đại', roughness: 0.56, metalness: 0.08, bump: 0.008, weave: 'plain' },
+            { id: 'pinstripe', name: 'Chalk Pinstripe', sub: 'Kẻ sọc dọc Savile Row', roughness: 0.70, metalness: 0.05, bump: 0.014, weave: 'pinstripe' },
+            { id: 'check', name: 'Prince of Wales Check', sub: 'Kẻ caro Glen Check', roughness: 0.74, metalness: 0.04, bump: 0.016, weave: 'check' },
+            { id: 'herringbone', name: 'Herringbone Twill', sub: 'Vân xương cá cổ điển', roughness: 0.76, metalness: 0.04, bump: 0.020, weave: 'herringbone' }
+        ];
+
+        const COLOR_SWATCHES = [
+            { name: 'Midnight Navy', hex: '#1c283d' },
+            { name: 'Obsidian Black', hex: '#141619' },
+            { name: 'Charcoal Grey', hex: '#2c3038' },
+            { name: 'Mid Flannel Grey', hex: '#4a505c' },
+            { name: 'Espresso Brown', hex: '#382924' },
+            { name: 'Warm Sand Beige', hex: '#8f7d65' },
+            { name: 'British Racing Green', hex: '#1c3329' },
+            { name: 'Royal Burgundy', hex: '#4a1c26' }
+        ];
+
+        const CURATED_PRESETS = [
+            {
+                name: 'Savile Row Bespoke 2-Button',
+                desc: 'Single-Breasted 2 cúc • Ve chữ K • Midnight Navy Wool',
+                config: {
+                    closure: '2_btn', lapel: 'notch', pocket: 'flap', vent: 'double',
+                    fabric: 'wool', color: '#1c283d', satinLapel: false, lapelWidth: 9.6,
+                    vZoneDepth: 37.5, collarWidth: 3.8, chest: 100, waist: 86, shoulderWidth: 46,
+                    showHandStitching: false
+                }
+            },
+            {
+                name: 'Mayfair Double-Breasted 4×2',
+                desc: 'Vest chéo 4 cúc (2 cột × 2 hàng) • Ve nhọn Peak • Pinstripe',
+                config: {
+                    closure: 'db_4x2', lapel: 'peak', pocket: 'flap', vent: 'double',
+                    fabric: 'pinstripe', color: '#1f2633', satinLapel: false, lapelWidth: 10.6,
+                    vZoneDepth: 36.5, collarWidth: 3.8, chest: 102, waist: 86, shoulderWidth: 46.5,
+                    showHandStitching: false
+                }
+            },
+            {
+                name: 'Milanese Double-Breasted 6×2',
+                desc: 'Vest chéo 6 cúc (2 cột × 3 hàng) • Ve nhọn rộng • Flannel Grey',
+                config: {
+                    closure: 'db_6x2', lapel: 'peak', pocket: 'jetted', vent: 'double',
+                    fabric: 'worsted', color: '#353b45', satinLapel: false, lapelWidth: 11.0,
+                    vZoneDepth: 36.0, collarWidth: 3.8, chest: 102, waist: 85, shoulderWidth: 47.0,
+                    showHandStitching: false
+                }
+            },
+            {
+                name: 'Black Tie Dinner Tuxedo',
+                desc: 'Single-Breasted 1 cúc • Ve Sam phủ lụa Satin • Túi viền',
+                config: {
+                    closure: '1_btn', lapel: 'shawl', pocket: 'jetted', vent: 'none',
+                    fabric: 'worsted', color: '#141619', satinLapel: true, lapelWidth: 9.4,
+                    vZoneDepth: 39.5, collarWidth: 3.6, buttonMaterial: 'covered',
+                    showHandStitching: false
+                }
+            },
+            {
+                name: 'Neapolitan Unstructured Linen',
+                desc: '2 cúc • Vai xuôi tự nhiên • Túi đắp Patch • Vải Lanh Sand Beige',
+                config: {
+                    closure: '2_btn', lapel: 'notch', pocket: 'patch', vent: 'double',
+                    fabric: 'linen', color: '#82715b', satinLapel: false, lapelWidth: 10.0,
+                    shoulderSlope: 18.0, ticketPocket: false, showWaistcoat: false,
+                    showHandStitching: false
+                }
+            }
+        ];
+
+        /**
+         * ============================================================================
+         * 2. PROCEDURAL PBR WEAVE & PATTERN TEXTURE ENGINE
+         * ============================================================================
+         */
+        class ProceduralFabricTextureEngine {
+            static createFabricMaps(fabricId, baseHex, texScale = 1.0) {
+                const size = 512;
+                const colorCanvas = document.createElement('canvas');
+                const bumpCanvas = document.createElement('canvas');
+                colorCanvas.width = bumpCanvas.width = size;
+                colorCanvas.height = bumpCanvas.height = size;
+
+                const cCtx = colorCanvas.getContext('2d');
+                const bCtx = bumpCanvas.getContext('2d');
+
+                const baseCol = new THREE.Color(baseHex);
+                const rBase = Math.round(baseCol.r * 255);
+                const gBase = Math.round(baseCol.g * 255);
+                const bBase = Math.round(baseCol.b * 255);
+
+                cCtx.fillStyle = `rgb(${rBase},${gBase},${bBase})`;
+                cCtx.fillRect(0, 0, size, size);
+
+                bCtx.fillStyle = 'rgb(128,128,128)';
+                bCtx.fillRect(0, 0, size, size);
+
+                const cImg = cCtx.getImageData(0, 0, size, size);
+                const bImg = bCtx.getImageData(0, 0, size, size);
+                const cData = cImg.data;
+                const bData = bImg.data;
+
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        const idx = (y * size + x) * 4;
+                        let weaveDelta = 0;
+                        let colorDelta = 0;
+
+                        if (fabricId === 'herringbone') {
+                            const period = 32;
+                            const zig = ((x % period) < period / 2) ? (x % (period / 2)) : (period / 2 - (x % (period / 2)));
+                            const diag = (y + zig * 2) % 8;
+                            weaveDelta = diag < 4 ? 18 : -18;
+                            colorDelta = diag < 4 ? 7 : -7;
+                        } else if (fabricId === 'pinstripe') {
+                            const diag = (x + y) % 6;
+                            weaveDelta = diag < 3 ? 10 : -10;
+                            const stripeMod = x % 48;
+                            if (stripeMod === 0 || stripeMod === 1) {
+                                if ((y % 4) !== 0) {
+                                    colorDelta = 52;
+                                    weaveDelta = 22;
+                                }
+                            }
+                        } else if (fabricId === 'check') {
+                            const diag = (x + y) % 6;
+                            weaveDelta = diag < 3 ? 12 : -12;
+                            const gx = x % 128;
+                            const gy = y % 128;
+                            const inBlockX = gx < 64;
+                            const inBlockY = gy < 64;
+                            if (inBlockX && inBlockY) {
+                                colorDelta = ((x + y) % 4 < 2) ? 16 : -14;
+                            } else if (inBlockX || inBlockY) {
+                                colorDelta = ((x % 4 < 2) ^ (y % 4 < 2)) ? 12 : -10;
+                            }
+                            if (Math.abs(gx - 96) <= 1 || Math.abs(gy - 96) <= 1) {
+                                colorDelta += 28;
+                            }
+                        } else if (fabricId === 'tweed') {
+                            const hash = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+                            const n = hash - Math.floor(hash);
+                            const twill = ((x + y) % 8 < 4) ? 14 : -14;
+                            weaveDelta = twill + (n - 0.5) * 42;
+                            colorDelta = twill * 0.4 + (n > 0.94 ? 32 : (n < 0.06 ? -24 : 0));
+                        } else if (fabricId === 'linen') {
+                            const slubX = Math.sin(y * 0.25) * 8 + ((y % 6 < 3) ? 14 : -14);
+                            const slubY = Math.cos(x * 0.25) * 8 + ((x % 6 < 3) ? 14 : -14);
+                            weaveDelta = (slubX + slubY) * 0.8;
+                            colorDelta = weaveDelta * 0.28;
+                        } else {
+                            // Classic Savile Row Twill / Worsted / Cashmere micro-weave
+                            const diag = (x + y) % 6;
+                            weaveDelta = diag < 3 ? 12 : -12;
+                            colorDelta = diag < 3 ? 3 : -3;
+                        }
+
+                        cData[idx] = THREE.MathUtils.clamp(rBase + colorDelta, 0, 255);
+                        cData[idx + 1] = THREE.MathUtils.clamp(gBase + colorDelta, 0, 255);
+                        cData[idx + 2] = THREE.MathUtils.clamp(bBase + colorDelta, 0, 255);
+                        cData[idx + 3] = 255;
+
+                        const bVal = THREE.MathUtils.clamp(128 + weaveDelta, 0, 255);
+                        bData[idx] = bVal;
+                        bData[idx + 1] = bVal;
+                        bData[idx + 2] = bVal;
+                        bData[idx + 3] = 255;
+                    }
+                }
+
+                cCtx.putImageData(cImg, 0, 0);
+                bCtx.putImageData(bImg, 0, 0);
+
+                const repeatCount = Math.round(6 * texScale);
+                const map = new THREE.CanvasTexture(colorCanvas);
+                map.wrapS = map.wrapT = THREE.RepeatWrapping;
+                map.repeat.set(repeatCount, repeatCount);
+                map.anisotropy = 8;
+
+                const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+                bumpMap.wrapS = bumpMap.wrapT = THREE.RepeatWrapping;
+                bumpMap.repeat.set(repeatCount, repeatCount);
+                bumpMap.anisotropy = 8;
+
+                return { map, bumpMap };
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 3. ANATOMICAL & SARTORIAL C2-CONTINUOUS SURFACE ENGINE
+         * ============================================================================
+         * Provides exact mathematical evaluation for:
+         * 1. Continuous Half-Body Mannequin (neck, clavicle, sloping shoulders, convex chest,
+         *    physiological back, natural waist, and sculpted upper-hip termination cap).
+         * 2. Tailored Suit Jacket Shell with smooth monotonic chest/shoulder contour (zero horizontal cinch).
+         * 3. Surface conformity projection for the continuous Lapel-to-Collar ribbon.
+         * 4. Single-Breasted (1B/2B/3B) and Double-Breasted (4x2/6x2) front panel geometry.
+         */
+        class AnatomicalSurfaceEngine {
+
+          
+            static smoothstep(edge0, edge1, x) {
+                const t = THREE.MathUtils.clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+                return t * t * (3.0 - 2.0 * t);
+            }
+
+            static smootherstep(edge0, edge1, x) {
+                const t = THREE.MathUtils.clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+                return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+            }
+
+            static getMetrics(state) {
+                const hScale = state.height / 178;
+                const lenM = (state.jacketLength / 100) * hScale;
+                const neckBaseY = 1.46 * hScale;
+                const hemY = neckBaseY - lenM;
+
+                const chestScale = state.chest / 100;
+                const waistScale = state.waist / 86;
+                const hipScale = state.hip / 98;
+                const fullShoulderHalfW = (state.shoulderWidth / 100) * 0.5;
+
+                const chestHalfW = 0.180 * chestScale;
+                // Armhole shoulder seam sits cleanly at the end of the trapezoid slope;
+                // the sleeve deltoid cap extends from shoulderSeamRx out to fullShoulderHalfW
+                const shoulderSeamRx = Math.max(chestHalfW + 0.012, fullShoulderHalfW - 0.030);
+                const acromionRx = shoulderSeamRx;
+                const slopeDrop = Math.tan((state.shoulderSlope * Math.PI) / 180) * 0.118;
+
+                // Normalized vertical landmarks (t in [0, 1] from hemY to neckBaseY)
+                const tArmpit = 0.575;
+                const tShoulder = 0.815;
+
+                const shoulderY = neckBaseY - 0.030 * hScale - slopeDrop;
+                const armpitY = hemY + tArmpit * lenM;
+                const scyeCenterY = (shoulderY + armpitY) * 0.5;
+                const scyeRadiusY = (shoulderY - armpitY) * 0.5;
+
+                const isDB = state.closure.startsWith('db_');
+
+                // Break Point height (t in [0, 1]): long, graceful V-zone extending to the waist button
+                const depthRatio = (state.vZoneDepth - 37.5) / 74.0;
+                let baseBreakT = 0.455;
+                if (state.closure === '1_btn') baseBreakT = 0.405;
+                else if (state.closure === '2_btn') baseBreakT = 0.455;
+                else if (state.closure === '3_btn') baseBreakT = 0.525;
+                else if (state.closure === 'db_4x2') baseBreakT = 0.435;
+                else if (state.closure === 'db_6x2') baseBreakT = 0.450;
+
+                const breakT = THREE.MathUtils.clamp(baseBreakT - depthRatio * 0.65 - 0.035, 0.33, 0.58);
+const gorgeT = THREE.MathUtils.clamp(0.906 - ((state.gorgeHeight - 7.8) / state.jacketLength) * 0.35, 0.865, 0.930);
+
+                const dbOverlapRad = 0.205 + (state.buttonEdgeOffset - 2.5) * 0.025;
+                const neckGorgeAngMag = 0.52;
+                const uCross = dbOverlapRad / (dbOverlapRad + neckGorgeAngMag);
+                const tCross = isDB
+                    ? THREE.MathUtils.lerp(breakT, 1.0, Math.pow(uCross, 0.92))
+                    : breakT;
+
+                return {
+                    hScale,
+                    lenM,
+                    neckBaseY,
+                    hemY,
+                    chestScale,
+                    waistScale,
+                    hipScale,
+                    fullShoulderHalfW,
+                    shoulderSeamRx,
+                    acromionRx,
+                    slopeDrop,
+                    tArmpit,
+                    tShoulder,
+                    shoulderY,
+                    armpitY,
+                    scyeCenterY,
+                    scyeRadiusY,
+                    isDB,
+                    breakT,
+                    gorgeT,
+                    dbOverlapRad,
+                    neckGorgeAngMag,
+                    tCross,
+                    upperWaist: state.upperWaist ?? 0,
+lowerChest: state.lowerChest ?? 0,
+lowerWaist: state.lowerWaist ?? 0,
+lowHip: state.lowHip ?? 0,
+bodyCurve: state.bodyCurve ?? 1,
+chestProj: state.chestProjection ?? 0,
+                };
+            }
+
+
+            /**
+ * Bù theo "vùng đo" (cm vòng): ngực dưới, eo trên, bụng dưới, hông dưới.
+ * 1 cm vòng ≈ +0.0022 m bề rộng mỗi bên và +0.0007 m độ sâu mỗi mặt (≈ +1 cm chu vi elip).
+ */
+static getStationOffsets(u, m) {
+  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+  const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);      // tắt hẳn ở nách
+  const RX = 0.0022, DZ = 0.0007;
+  let dRx = 0.0, dF = 0.0, dB = 0.0;
+
+  const add = (cm, c, s, f, b, useArm) => {
+    if (!cm) return;
+    const z = (u - c) / s;
+    const w = Math.exp(-z * z) * (useArm ? nearArm : 1.0);
+    dRx += cm * RX * w;
+    dF  += cm * DZ * f * w;
+    dB  += cm * DZ * b * w;
+  };
+  add(m.lowerChest, 0.620, 0.050, 1.0, 1.0, true);   // sườn dưới lồng ngực
+  add(m.upperWaist, 0.545, 0.050, 1.0, 1.0, true);   // giữa ngực – eo
+  add(m.lowerWaist, 0.330, 0.075, 1.4, 0.6, false);  // bụng dưới (thiên về mặt trước)
+  add(m.lowHip,     0.090, 0.085, 0.6, 1.4, false);  // mông (thiên về mặt sau)
+  return { dRx, dF, dB };
+}
+
+
+/**
+ * Nửa bề rộng thân (chính diện). u: 0 = gấu -> 1 = ngang vai.
+ * Nền đơn điệu hông -> ngực, cộng các nét cong mềm (Gaussian rộng), tất cả tắt hẳn ở nách.
+ *  - bodyCurve : 1.0 = chuẩn; 0 = sườn thẳng; >1 = eo sâu hơn, sườn ngực dưới và hông tròn hơn.
+ *  - upperWaist: cm vòng, dương = đoạn giữa ngực–eo đầy hơn, âm = thon hơn.
+ */
+static getSideRx(u, m, targetShoulderRx) {
+  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+  const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
+  const k = m.bodyCurve;
+  const extra = Math.max(0.0, k - 1.0);
+
+  const hipRx   = 0.176 * m.hipScale;
+  const waistRx = 0.160 * m.waistScale;
+  const chestRx = 0.170 * m.chestScale;                           // neo nách: không đổi
+
+  const baseAt = (x) => THREE.MathUtils.lerp(hipRx, chestRx, this.smootherstep(0.12, uA, x));
+  const waistDip = baseAt(0.48) - waistRx;
+  const win     = 1.0 - this.smootherstep(0.55, uA, u);
+  const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);
+
+  let lower = baseAt(u)
+            - k * waistDip * g(u, 0.48, 0.15) * win
+            + 0.0025 * g(u, 0.0, 0.07);
+
+  lower += extra * (0.0030 * g(u, 0.62, 0.07) * nearArm
+                  + 0.0030 * g(u, 0.12, 0.09));
+
+  lower += this.getStationOffsets(u, m).dRx;
+
+  const armpitToShoulder = this.smootherstep(0.68, 1.0, u);
+  return THREE.MathUtils.lerp(lower, targetShoulderRx, armpitToShoulder);
+}
+
+
+/**
+ * Độ sâu trước/sau (nhìn ngang). u: 0 = gấu -> 1 = ngang vai.
+ *  - bodyCurve nhân biên độ bụng, mông, ưỡn thắt lưng.
+ *  - upperWaist cộng độ dày đoạn giữa ngực–eo (trước và sau như nhau).
+ *  - chestProj (cm) cộng độ dày phía trước ở ngực trên, tắt hẳn trước cổ (u ≥ 0.97).
+ */
+static getSideDepths(u, m) {
+  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+  const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
+  const cs = m.chestScale, ws = m.waistScale, hs = m.hipScale;
+  const k = m.bodyCurve;
+
+  const chestRzF = 0.125 * cs;
+  const upperRzB = 0.112 * cs;
+  const win = 1.0 - this.smootherstep(0.50, uA, u);
+
+  const frontHip = 0.108 * (0.4 * hs + 0.6 * ws);
+  let frontLower = THREE.MathUtils.lerp(frontHip, chestRzF, this.smootherstep(0.28, uA, u))
+                 + k * 0.005 * ws * g(u, 0.33, 0.13) * win;
+
+  const backHip = 0.112 * hs;
+  let backLower = THREE.MathUtils.lerp(backHip, upperRzB, this.smootherstep(0.20, uA, u))
+                + k * 0.004 * g(u, 0.06, 0.13) * win
+                - k * 0.012 * ws * g(u, 0.43, 0.12) * win;
+
+  const st = this.getStationOffsets(u, m);
+  frontLower += st.dF;
+  backLower  += st.dB;
+
+  const shoulderFall = this.smootherstep(0.74, 1.0, u);
+  let front = frontLower - 0.22 * shoulderFall * (chestRzF - 0.105 * ws);
+  const back = backLower - 0.14 * shoulderFall * (upperRzB - 0.100 * ws);
+
+  // Căng ngực trên: đỉnh ngay dưới xương đòn (u≈0.92), cm = độ dày thật phía trước.
+  // Không tắt ở u=1: phần còn lại tự tan về cổ nhờ cách vai pha trộn với vòng cổ.
+  front += (m.chestProj / 100) * g(u, 0.92, 0.065);
+
+  return { front, back };
+}
+
+            /**
+             * Helper: Returns the lateral torso radius rx(t) at normalized height t in [0, 1]
+             * so that the lapel roll line and collar can follow a true straight 3D trajectory
+             * up the chest and onto the side of the dress shirt collar.
+             */
+            static getTorsoRxAt(t, state, isSuitShell = true) {
+                const m = this.getMetrics(state);
+                const neckEaseTaper = 1.0 - 0.92 * this.smootherstep(m.tShoulder, 1.0, t);
+                const baseEase = isSuitShell ? (0.009 + state.fitEase * 0.0020) * neckEaseTaper : 0.0;
+                const neckScale = 0.68 + 0.32 * m.chestScale;
+                const targetShoulderRx = isSuitShell ? m.shoulderSeamRx : (m.shoulderSeamRx - 0.005);
+                const neckRingRx = (isSuitShell ? 0.0568 : 0.055) * neckScale;
+
+                let rx;
+                if (t <= m.tShoulder) {
+  rx = this.getSideRx(t / m.tShoulder, m, targetShoulderRx);
+} else {
+                    const uSh = (t - m.tShoulder) / (1.0 - m.tShoulder);
+                    const sLinear = 0.72 * uSh + 0.28 * this.smoothstep(0.0, 1.0, uSh);
+                    rx = THREE.MathUtils.lerp(targetShoulderRx, neckRingRx, sLinear);
+                }
+                return rx + baseEase;
+            }
+
+            /**
+             * Computes the exact lateral X coordinate of the straight V-zone roll line
+             * pulling straight up from the Break Point to hug the side of the dress shirt collar.
+             */
+            static getFrontRollX(t, sideSign, state) {
+                const m = this.getMetrics(state);
+                const neckScale = 0.68 + 0.32 * m.chestScale;
+                // Hug closely against the side of the dress shirt collar
+                const neckSideX = sideSign * (0.0545 * neckScale);   // trước là 0.0482
+                const rxBreak = this.getTorsoRxAt(m.breakT, state, true);
+
+                if (m.isDB) {
+                    const dbOverlapX = Math.sin(m.dbOverlapRad) * rxBreak;
+                    if (sideSign > 0) {
+                        if (t <= m.breakT) return -dbOverlapX;
+                        const uV = (t - m.breakT) / (1.0 - m.breakT);
+                        return THREE.MathUtils.lerp(-dbOverlapX, neckSideX, Math.pow(uV, 0.97));
+                    } else {
+                        const underOverlapX = Math.sin(0.085) * rxBreak;
+                        if (t <= m.breakT) return underOverlapX;
+                        const uV = (t - m.breakT) / (1.0 - m.breakT);
+                        const symRightX = THREE.MathUtils.lerp(dbOverlapX, neckSideX, Math.pow(uV, 0.97));
+                        const aboveCross = this.smootherstep(m.breakT, m.tCross - 0.015, t);
+                        return THREE.MathUtils.lerp(underOverlapX, symRightX, aboveCross);
+                    }
+                } else {
+                    // At t = m.breakT, the V-zone roll line starts cleanly on each side of center (never crossing over above breakT)
+                    const vApexX = sideSign * (0.008 * rxBreak);
+                    if (t <= m.breakT) {
+                        const buttonOverlapX = (sideSign > 0 ? -0.038 : 0.022) * rxBreak;
+                        const uToApex = this.smootherstep(m.breakT - 0.035, m.breakT, t);
+                        return THREE.MathUtils.lerp(buttonOverlapX, vApexX, uToApex);
+                    }
+                    const uV = (t - m.breakT) / (1.0 - m.breakT);
+                    return THREE.MathUtils.lerp(vApexX, neckSideX, Math.pow(uV, 0.97));
+                }
+            }
+
+            /**
+             * Evaluates the continuous Half-Body Mannequin from s = 0 (upper hip bottom cap)
+             * through waist, full chest, clavicle, physiological back, sloping shoulders, and neck up to s = 1.
+             */
+            static evalMannequinPoint(s, angle, state) {
+                const m = this.getMetrics(state);
+                const sinA = Math.sin(angle);
+                const cosA = Math.cos(angle);
+
+                const hipCutT = 0.08;
+                const pHipRim = this.evalTorsoBodySection(hipCutT, angle, state, false, 0);
+                const hipCapBottomY = pHipRim.y - 0.022;
+                const neckTopY = m.neckBaseY + 0.088 * m.hScale;
+
+                // 1. Smoothly sculpted bottom upper-hip cap (s in [0.00, 0.08])
+                if (s < 0.08) {
+                    const u = this.smootherstep(0.0, 0.08, s);
+                    const radialScale = Math.sin(u * Math.PI * 0.5);
+                    const y = THREE.MathUtils.lerp(hipCapBottomY, pHipRim.y, u * u);
+                    return new THREE.Vector3(
+                        pHipRim.x * radialScale,
+                        y,
+                        pHipRim.z * radialScale
+                    );
+                }
+
+                // 2. Main Anatomical Upper Torso: Upper Hip -> Waist -> Full Chest & Clavicle -> Sloping Shoulders (s in [0.08, 0.84])
+                if (s <= 0.84) {
+                    const uTorso = (s - 0.08) / 0.76;
+                    const tTorso = THREE.MathUtils.lerp(hipCutT, 1.0, uTorso);
+                    return this.evalTorsoBodySection(tTorso, angle, state, false, 0);
+                }
+
+                // 3. Seamless Clavicle/Trapezius to Anatomical Neck Column (s in [0.84, 0.95])
+                const pNeckBase = this.evalTorsoBodySection(1.0, angle, state, false, 0);
+                const neckScale = 0.68 + 0.32 * m.chestScale;
+                const neckRx = 0.055 * neckScale;
+                const neckRzF = 0.056 * neckScale;
+                const neckRzB = 0.055 * neckScale;
+
+                if (s <= 0.95) {
+                    const uNeck = (s - 0.84) / 0.11;
+                    const blend = this.smootherstep(0.0, 1.0, uNeck);
+
+                    const targetY = THREE.MathUtils.lerp(
+                        pNeckBase.y,
+                        neckTopY - 0.009 * cosA,
+                        uNeck
+                    );
+                    const cylX = sinA * neckRx;
+                    const cylZ = cosA * (cosA >= 0 ? neckRzF : neckRzB) + 0.011 + uNeck * 0.002;
+
+                    return new THREE.Vector3(
+                        THREE.MathUtils.lerp(pNeckBase.x, cylX, blend),
+                        targetY,
+                        THREE.MathUtils.lerp(pNeckBase.z, cylZ, blend)
+                    );
+                }
+
+                // 4. Sculpted Top Cap of the Mannequin Neck (s in [0.95, 1.00])
+                const uCap = (s - 0.95) / 0.05;
+                const radial = Math.cos(uCap * Math.PI * 0.5);
+                const domeLift = Math.sin(uCap * Math.PI * 0.5) * 0.006;
+                const yTop = (neckTopY - 0.009 * cosA * radial) + domeLift;
+                return new THREE.Vector3(
+                    sinA * neckRx * radial,
+                    yTop,
+                    cosA * (cosA >= 0 ? neckRzF : neckRzB) * radial + 0.013
+                );
+            }
+
+
+   /**
+ * Độ sâu trước/sau (nhìn ngang). u: 0 = gấu -> 1 = ngang vai.
+ *  - bodyCurve nhân biên độ bụng, mông, ưỡn thắt lưng.
+ *  - upperWaist cộng độ dày đoạn giữa ngực–eo (trước và sau như nhau).
+ *  - chestProj (cm) cộng độ dày phía trước ở ngực trên, tắt hẳn trước cổ (u ≥ 0.97).
+ */
+static getSideDepths(u, m) {
+  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+  const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
+  const cs = m.chestScale, ws = m.waistScale, hs = m.hipScale;
+  const k = m.bodyCurve;
+
+  const chestRzF = 0.125 * cs;
+  const upperRzB = 0.112 * cs;
+  const win     = 1.0 - this.smootherstep(0.50, uA, u);
+  const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);
+
+  // ---- Phía trước ----
+  const frontHip = 0.108 * (0.4 * hs + 0.6 * ws);
+  let frontLower = THREE.MathUtils.lerp(frontHip, chestRzF, this.smootherstep(0.28, uA, u))
+                 + k * 0.005 * ws * g(u, 0.33, 0.13) * win;     // bụng dưới
+
+  // ---- Phía sau ----
+  const backHip = 0.112 * hs;
+  let backLower = THREE.MathUtils.lerp(backHip, upperRzB, this.smootherstep(0.20, uA, u))
+                + k * 0.004 * g(u, 0.06, 0.13) * win            // mông
+                - k * 0.012 * ws * g(u, 0.43, 0.12) * win;      // ưỡn thắt lưng
+
+  // ---- Eo trên (độ dày): ~0.0007 m mỗi mặt cho mỗi cm vòng ----
+  const uw = m.upperWaist * 0.0007 * g(u, 0.585, 0.06) * nearArm;
+  frontLower += uw;
+  backLower  += uw;
+
+  // ---- Nách -> vai: giữ nguyên hành vi cũ ----
+  const shoulderFall = this.smootherstep(0.74, 1.0, u);
+  let front = frontLower - 0.22 * shoulderFall * (chestRzF - 0.105 * ws);
+  const back = backLower - 0.14 * shoulderFall * (upperRzB - 0.100 * ws);
+
+  // ---- Độ nhô / căng ngực trên (cơ ngực): đỉnh quanh u≈0.76, tắt hẳn trước cổ ----
+  front += (m.chestProj / 100) * g(u, 0.76, 0.095)
+         * (1.0 - this.smootherstep(0.84, 0.97, u));
+
+  return { front, back };
+}
+
+
+/**
+ * Nếp rủ vải nhẹ (tinh tế, trung bình = 0 nên không đổi phom/độ vừa vặn).
+ * Dịch bề mặt theo hướng xuyên tâm tối đa ~1.4mm.
+ * Chỉ hoạt động ở thân dưới/eo (dưới chân ve), tắt ở vai, nách, cổ, mép vạt trước và giữa lưng.
+ */
+static getDrapeOffset(t, angle, m) {
+  const STRENGTH = 0.0024;                 // mét (đỉnh biên độ ≈ 2.4mm)
+  const a = Math.abs(angle);
+
+  // Phía trước: dừng dưới chân ve. Hai bên sườn (ngoài bề rộng ve): kéo lên gần nách.
+  const tEndFront = m.breakT - 0.03;
+  const tEndSide  = m.tArmpit - 0.04;
+  const tEnd = THREE.MathUtils.lerp(tEndFront, tEndSide, this.smoothstep(0.95, 1.25, a));
+
+  const vEnv = (0.55 + 0.45 * this.smootherstep(0.0, 0.12, t))
+             * (1.0 - this.smootherstep(tEnd - 0.14, tEnd, t));
+  if (vEnv <= 0.0) return 0.0;
+
+  const aEnv = this.smoothstep(0.10, 0.45, a)
+             * (1.0 - this.smoothstep(Math.PI - 0.30, Math.PI - 0.04, a));
+  if (aEnv <= 0.0) return 0.0;
+
+  // Nếp gần như thẳng đứng (tần số theo t thấp), hai họa âm lệch pha để không đều như sóng
+  const f1 = Math.cos(11.0 * a + 6.0 * t + 0.6) * (0.65 + 0.35 * Math.sin(2.3 * a + 1.0));
+  const f2 = Math.cos(17.0 * a - 4.5 * t + 2.1) * 0.4;
+
+  return STRENGTH * vEnv * aEnv * (f1 + f2) / 1.4;
+}
+
+            /**
+             * Core C2-Continuous Anatomical & Sartorial Torso Evaluator for t in [0, 1].
+             * Produces a clean, taut Savile Row shoulder line from the neck ring down to the
+             * armhole shoulder seam (shoulderSeamRx), and a full, smooth masculine chest.
+             */
+            static evalTorsoBodySection(t, angle, state, isSuitShell = true, sideSign = 0) {
+                const m = this.getMetrics(state);
+                const sinA = Math.sin(angle);
+                const cosA = Math.cos(angle);
+                const sin2 = sinA * sinA;
+                const cos2 = cosA * cosA;
+
+                // Taper ease smoothly to near-zero at the neck ring (t -> 1.0) so the jacket collar hugs the shirt collar tightly
+                const neckEaseTaper = 1.0 - 0.92 * this.smootherstep(m.tShoulder, 1.0, t);
+                const baseEase = isSuitShell ? (0.009 + state.fitEase * 0.0020) * neckEaseTaper : 0.0;
+                const neckScale = 0.68 + 0.32 * m.chestScale;
+
+                const targetShoulderRx = isSuitShell ? m.shoulderSeamRx : (m.shoulderSeamRx - 0.005);
+                const neckRingRx = (isSuitShell ? 0.0568 : 0.055) * neckScale;
+                const neckRingRzF = (isSuitShell ? 0.0578 : 0.056) * neckScale;
+                const neckRingRzB = (isSuitShell ? 0.0565 : 0.055) * neckScale;
+
+                let rx, rzFront, rzBack;
+
+                if (t <= m.tShoulder) {
+  const u = t / m.tShoulder;
+  rx = this.getSideRx(u, m, targetShoulderRx);
+
+  const sideDepth = this.getSideDepths(u, m);
+  rzFront = sideDepth.front;
+  rzBack = sideDepth.back;
+} else {
+  // Độ dốc vai (t từ tShoulder đến 1.0)
+  const uSh = (t - m.tShoulder) / (1.0 - m.tShoulder);
+  const sLinear = 0.72 * uSh + 0.28 * this.smoothstep(0.0, 1.0, uSh);
+  const sFront = this.smootherstep(0.0, 1.0, uSh);
+
+  const topDepth = this.getSideDepths(1.0, m);
+  rx = THREE.MathUtils.lerp(targetShoulderRx, neckRingRx, sLinear);
+  rzFront = THREE.MathUtils.lerp(topDepth.front, neckRingRzF, Math.pow(sFront, 1.12));
+  rzBack = THREE.MathUtils.lerp(topDepth.back, neckRingRzB, sFront);
+}
+
+                rx += baseEase;
+                rzFront += baseEase * 0.92;
+                rzBack += baseEase * 0.88;
+
+                // Broad, natural masculine chest & back cross-section
+                const torsoBroadEnv = this.smoothstep(0.15, 0.65, t) * (1.0 - 0.80 * this.smoothstep(m.tShoulder, 1.0, t));
+                const harmonic = 1.0 + 0.02 * sin2 * cos2 * torsoBroadEnv;   // trước là 0.075: bớt vuông góc, gần elip tự nhiên
+                let x = sinA * rx * harmonic;
+                let z = (cosA >= 0 ? cosA * rzFront : cosA * rzBack) * harmonic;
+
+                // Broad, continuous Pectoral & Sub-Clavicular Convexity
+                // if (cosA > 0) {
+                //     const chestArchEnv = this.smoothstep(0.26, 0.52, t) * (1.0 - this.smoothstep(0.66, 0.86, t));
+                //     z += 0.012 * m.chestScale * chestArchEnv * Math.pow(cosA, 1.3);  // hạ đỉnh, mờ dần về hai bên
+                // }
+
+                // // Gentle scapular fullness on the upper back
+                // if (cosA < 0) {
+                //     const backArchEnv = this.smoothstep(0.35, 0.68, t) * (1.0 - this.smoothstep(0.84, 1.0, t));
+                //     z -= 0.008 * m.chestScale * backArchEnv * Math.pow(-cosA, 0.85);
+                // }
+
+                // Natural anatomical spine posture
+                z += Math.sin(t * Math.PI * 0.88) * 0.009;
+
+                // Nếp rủ vải nhẹ chỉ cho lớp áo vest
+if (isSuitShell) {
+  const dr = this.getDrapeOffset(t, angle, m);
+  x += sinA * dr;
+  z += cosA * dr;
+}
+
+                // Vertical Coordinate Y:
+                // Taut, linear shoulder slope from neckBaseY down to shoulderY at the armhole seam
+                let yCenter = m.hemY + t * m.lenM;
+                const neckFrontTilt = this.smootherstep(0.82, 1.0, t) * (0.007 * cosA - 0.002);
+                yCenter -= neckFrontTilt;
+
+                let ySide;
+                if (t <= m.tShoulder) {
+                    const u = t / m.tShoulder;
+                    ySide = THREE.MathUtils.lerp(m.hemY, m.shoulderY, u);
+                } else {
+                    const uSh = (t - m.tShoulder) / (1.0 - m.tShoulder);
+                    const slopeCurve = 0.76 * uSh + 0.24 * this.smoothstep(0.0, 1.0, uSh);
+                    ySide = THREE.MathUtils.lerp(m.shoulderY, m.neckBaseY - 0.002, slopeCurve);
+                }
+
+                const y = THREE.MathUtils.lerp(yCenter, ySide, sin2);
+
+                // Tailored Front Panel Overlap & GSAP Open/Close Drape
+                if (isSuitShell && sideSign !== 0 && cosA > -0.15) {
+                    const frontWeight = this.smoothstep(-0.15, 0.65, cosA);
+                    const layerZ = sideSign > 0 ? 0.0044 : 0.0010;
+                    z += layerZ * frontWeight;
+
+                    if (state.openAmount > 0.001 && t < 0.92) {
+                        const openSwing = state.openAmount * (1.0 - Math.pow(t, 2.0)) * Math.max(0, cosA);
+                        x += sideSign * openSwing * (m.isDB ? 0.068 : 0.048);
+                        z += openSwing * 0.025;
+                    }
+                }
+
+                return new THREE.Vector3(x, y, z);
+            }
+
+            static evalTorsoNormal(t, angle, state, isSuitShell = true, sideSign = 0) {
+                const dt = 0.005;
+                const da = 0.008;
+                const t0 = Math.max(0.0, t - dt);
+                const t1 = Math.min(1.0, t + dt);
+                const pT0 = this.evalTorsoBodySection(t0, angle, state, isSuitShell, sideSign);
+                const pT1 = this.evalTorsoBodySection(t1, angle, state, isSuitShell, sideSign);
+                const pA0 = this.evalTorsoBodySection(t, angle - da, state, isSuitShell, sideSign);
+                const pA1 = this.evalTorsoBodySection(t, angle + da, state, isSuitShell, sideSign);
+
+                const vT = pT1.sub(pT0);
+                const vA = pA1.sub(pA0);
+                return new THREE.Vector3().crossVectors(vA, vT).normalize();
+            }
+
+            /**
+             * Evaluates the Front Opening Edge Angle for Left (+1) and Right (-1) front panels.
+             * Uses getFrontRollX(t) above breakT so the V-zone and lapel roll line pull straight up
+             * to hug the side of the dress shirt collar without bowing outward on the chest.
+             */
+            static getFrontEdgeAngle(t, sideSign, state) {
+                const m = this.getMetrics(state);
+
+                if (t > m.breakT - 0.035 && !m.isDB) {
+                    const xRoll = this.getFrontRollX(t, sideSign, state);
+                    const rxAtT = this.getTorsoRxAt(t, state, true);
+                    return Math.asin(THREE.MathUtils.clamp(xRoll / rxAtT, -0.96, 0.96));
+                }
+
+                if (t > m.breakT && m.isDB) {
+                    const xRoll = this.getFrontRollX(t, sideSign, state);
+                    const rxAtT = this.getTorsoRxAt(t, state, true);
+                    return Math.asin(THREE.MathUtils.clamp(xRoll / rxAtT, -0.96, 0.96));
+                }
+
+                if (m.isDB) {
+                    if (sideSign > 0) {
+                        let ang = -m.dbOverlapRad;
+                        if (t < 0.09) {
+                            const uHem = (0.09 - t) / 0.09;
+                            ang += Math.pow(uHem, 2.0) * 0.035;
+                        }
+                        return ang;
+                    } else {
+                        let ang = 0.085;
+                        if (t < 0.09) {
+                            const uHem = (0.09 - t) / 0.09;
+                            ang -= Math.pow(uHem, 2.0) * 0.035;
+                        }
+                        return ang;
+                    }
+                } else {
+                    const sbOverlap = 0.038;
+                    let ang = sideSign > 0 ? -sbOverlap : sbOverlap * 0.58;
+
+                    // Tailored cutaway front quarters below breakT
+                    if (t < m.breakT - 0.02) {
+                        const uCut = (m.breakT - 0.02 - t) / (m.breakT - 0.02);
+                        const curveFactor = 0.25 + state.hemCurve * 0.50;
+                        ang += sideSign * Math.pow(uCut, 1.85) * curveFactor;
+                    }
+                    return ang;
+                }
+            }
+
+            /**
+             * Evaluates the trimmed inner edge of the Front Jacket Body panel so that
+             * the underlying fabric sweeps gently outward ("dạt nhẹ ra 1 xíu") right under
+             * the center of the lapel blade and collar stand, preventing any fabric or lining
+             * from ever peeking out from underneath the lapel.
+             */
+            static getJacketBodyInnerAngle(t, sideSign, state) {
+                const m = this.getMetrics(state);
+                const rollAng = this.getFrontEdgeAngle(t, sideSign, state);
+                if (t <= m.breakT - 0.025) return rollAng;
+                // Thân áo chỉ lùi ra theo đúng bề rộng ve đang có: chân ve hẹp thì lùi rất ít
+                const uFoot = this.smoothstep(m.breakT - 0.025, m.breakT + 0.045, t);
+const uBlade = this.smootherstep(m.breakT + 0.05, m.gorgeT - 0.02, t);
+// Độ thụt chỉ tồn tại dưới bản ve (bị che), tắt hẳn trước khi tới Gorge:
+// phía trên Gorge mép thân nằm đúng trên đường bẻ ve thẳng.
+const uClose = 1.0 - this.smootherstep(m.gorgeT - 0.075, m.gorgeT - 0.015, t);
+const tuckUnderLapel = (0.010 * uFoot + 0.040 * uBlade) * uClose;
+return rollAng + sideSign * tuckUnderLapel;
+            }
+
+            /**
+             * Evaluates the 3D Armhole Scye Curve S(phi) for seam inspection & sleeve attachment.
+             */
+            static evalArmholeScyeData(phi, sideSign, state) {
+                const m = this.getMetrics(state);
+                const tMid = (m.tShoulder + m.tArmpit) * 0.5;
+                const tHalf = (m.tShoulder - m.tArmpit) * 0.5;
+
+                const cosPhi = Math.cos(phi);
+                const sinPhi = Math.sin(phi);
+                const tScye = tMid + cosPhi * tHalf;
+
+                const angleScye = sideSign * (Math.PI * 0.5 - sinPhi * 0.20);
+                const p = this.evalTorsoBodySection(tScye, angleScye, state, true, 0);
+                const n = this.evalTorsoNormal(tScye, angleScye, state, true, 0);
+                return { tScye, angleScye, p, n };
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 4. BESPOKE 3D SUIT GEOMETRY BUILDER
+         * ============================================================================
+         */
+        class BespokeSuitGeometryBuilder {
+            static smoothstep(edge0, edge1, x) {
+                return AnatomicalSurfaceEngine.smoothstep(edge0, edge1, x);
+            }
+
+            static smootherstep(edge0, edge1, x) {
+                return AnatomicalSurfaceEngine.smootherstep(edge0, edge1, x);
+            }
+
+            static buildThickGridGeometry(outerGrid, innerGrid, uvGrid) {
+                const rows = outerGrid.length - 1;
+                const cols = outerGrid[0].length - 1;
+                const positions = [];
+                const uvs = [];
+                const indices = [];
+
+                const pushVertex = (p, uv) => {
+                    const idx = positions.length / 3;
+                    positions.push(p.x, p.y, p.z);
+                    uvs.push(uv.x, uv.y);
+                    return idx;
+                };
+
+                // 1. Outer Surface
+                const outIdx = [];
+                for (let r = 0; r <= rows; r++) {
+                    const rowIndices = [];
+                    for (let c = 0; c <= cols; c++) {
+                        rowIndices.push(pushVertex(outerGrid[r][c], uvGrid[r][c]));
+                    }
+                    outIdx.push(rowIndices);
+                }
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const a = outIdx[r][c];
+                        const b = outIdx[r][c + 1];
+                        const d = outIdx[r + 1][c];
+                        const e = outIdx[r + 1][c + 1];
+                        indices.push(a, b, e, a, e, d);
+                    }
+                }
+
+                // 2. Inner Surface
+                const inIdx = [];
+                for (let r = 0; r <= rows; r++) {
+                    const rowIndices = [];
+                    for (let c = 0; c <= cols; c++) {
+                        rowIndices.push(pushVertex(innerGrid[r][c], uvGrid[r][c]));
+                    }
+                    inIdx.push(rowIndices);
+                }
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const a = inIdx[r][c];
+                        const b = inIdx[r][c + 1];
+                        const d = inIdx[r + 1][c];
+                        const e = inIdx[r + 1][c + 1];
+                        indices.push(a, e, b, a, d, e);
+                    }
+                }
+
+                // 3. Watertight Perimeter Edge Bevels
+                const stitchStrip = (outList, inList, flip = false) => {
+                    for (let i = 0; i < outList.length - 1; i++) {
+                        const o1 = outList[i], o2 = outList[i + 1];
+                        const i1 = inList[i], i2 = inList[i + 1];
+                        if (!flip) {
+                            indices.push(o1, i1, i2, o1, i2, o2);
+                        } else {
+                            indices.push(o1, i2, i1, o1, o2, i2);
+                        }
+                    }
+                };
+
+                stitchStrip(outIdx[0], inIdx[0], false);
+                stitchStrip(outIdx[rows], inIdx[rows], true);
+
+                const leftO = [], leftI = [], rightO = [], rightI = [];
+                for (let r = 0; r <= rows; r++) {
+                    leftO.push(outIdx[r][0]);
+                    leftI.push(inIdx[r][0]);
+                    rightO.push(outIdx[r][cols]);
+                    rightI.push(inIdx[r][cols]);
+                }
+                stitchStrip(leftO, leftI, true);
+                stitchStrip(rightO, rightI, false);
+
+                const geom = new THREE.BufferGeometry();
+                geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+                geom.setIndex(indices);
+                geom.computeVertexNormals();
+                return geom;
+            }
+
+            /**
+             * 1. CONTINUOUS HALF-BODY MANNEQUIN, STAND, SHIRT, TIE & WAISTCOAT
+             */
+            static buildMannequinAndEnsemble(state, materials) {
+                const group = new THREE.Group();
+                const m = AnatomicalSurfaceEngine.getMetrics(state);
+
+                // A. Single Continuous Manifold Half-Body Mannequin
+                const mRows = 68;
+                const mCols = 72;
+                const mPos = [];
+                const mUvs = [];
+                const mInd = [];
+
+                for (let r = 0; r <= mRows; r++) {
+                    const s = r / mRows;
+                    for (let c = 0; c <= mCols; c++) {
+                        const u = c / mCols;
+                        const angle = (u - 0.5) * Math.PI * 2;
+                        const p = AnatomicalSurfaceEngine.evalMannequinPoint(s, angle, state);
+                        mPos.push(p.x, p.y, p.z);
+                        mUvs.push(u, s);
+                    }
+                }
+                for (let r = 0; r < mRows; r++) {
+                    for (let c = 0; c < mCols; c++) {
+                        const a = r * (mCols + 1) + c;
+                        const b = a + 1;
+                        const d = (r + 1) * (mCols + 1) + c;
+                        const e = d + 1;
+                        mInd.push(a, b, e, a, e, d);
+                    }
+                }
+
+                const manGeom = new THREE.BufferGeometry();
+                manGeom.setAttribute('position', new THREE.Float32BufferAttribute(mPos, 3));
+                manGeom.setAttribute('uv', new THREE.Float32BufferAttribute(mUvs, 2));
+                manGeom.setIndex(mInd);
+                manGeom.computeVertexNormals();
+                const manMesh = new THREE.Mesh(manGeom, materials.mannequin);
+                manMesh.castShadow = true;
+                manMesh.receiveShadow = true;
+                group.add(manMesh);
+
+                // B. Bespoke Tailoring Stand (Walnut Base + Brushed Brass Pillar)
+                const hipCutY = AnatomicalSurfaceEngine.evalTorsoBodySection(0.08, 0, state, false, 0).y - 0.020;
+                const poleH = Math.max(0.25, hipCutY - 0.04);
+                const poleGeom = new THREE.CylinderGeometry(0.017, 0.017, poleH, 28);
+                const poleMesh = new THREE.Mesh(poleGeom, materials.brass);
+                poleMesh.position.set(0, poleH * 0.5 + 0.02, 0.005);
+                group.add(poleMesh);
+
+                const collarRingGeom = new THREE.CylinderGeometry(0.038, 0.028, 0.036, 28);
+                const collarRingMesh = new THREE.Mesh(collarRingGeom, materials.brass);
+                collarRingMesh.position.set(0, hipCutY - 0.012, 0.005);
+                group.add(collarRingMesh);
+
+                const basePedestalGeom = new THREE.CylinderGeometry(0.22, 0.25, 0.036, 42);
+                const basePedestalMesh = new THREE.Mesh(basePedestalGeom, materials.walnut);
+                basePedestalMesh.position.set(0, 0.018, 0.005);
+                basePedestalMesh.receiveShadow = true;
+                group.add(basePedestalMesh);
+
+                // C. Dress Shirt Chest & Sculpted 3D Turn-Down Collar
+                if (state.showShirt) {
+                    const sRows = 26, sCols = 32;
+                    const sPos = [], sInd = [];
+                    for (let r = 0; r <= sRows; r++) {
+                        const t = 0.36 + (r / sRows) * 0.64;
+                        for (let c = 0; c <= sCols; c++) {
+                            const angle = ((c / sCols) - 0.5) * 1.45;
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, angle, state, false, 0);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, angle, state, false, 0);
+                            p.addScaledVector(n, 0.0030);
+                            sPos.push(p.x, p.y, p.z);
+                        }
+                    }
+                    for (let r = 0; r < sRows; r++) {
+                        for (let c = 0; c < sCols; c++) {
+                            const a = r * (sCols + 1) + c;
+                            const b = a + 1;
+                            const d = (r + 1) * (sCols + 1) + c;
+                            const e = d + 1;
+                            sInd.push(a, b, e, a, e, d);
+                        }
+                    }
+                    const shirtGeom = new THREE.BufferGeometry();
+                    shirtGeom.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
+                    shirtGeom.setIndex(sInd);
+                    shirtGeom.computeVertexNormals();
+                    const shirtMesh = new THREE.Mesh(shirtGeom, materials.shirt);
+                    shirtMesh.receiveShadow = true;
+                    group.add(shirtMesh);
+
+                    // Sculpted 3D High-Structured Dress Shirt Collar (matching reference image)
+                    const cSegs = 52;
+                    const cRows = 8;
+                    const colOut = [], colIn = [], colUv = [];
+
+                    for (let r = 0; r <= cRows; r++) {
+                        const v = r / cRows;
+                        const rowO = [], rowI = [], rowU = [];
+                        for (let i = 0; i <= cSegs; i++) {
+                            const u = i / cSegs;
+                            // Narrow, crisp center-front vertical gap (~4mm) between left and right collar edges
+                            const theta = (u - 0.5) * (Math.PI * 2 - 0.07) + Math.PI;
+                            const cosT = Math.cos(theta);
+
+                            const frontPointProfile = cosT > 0
+                            ? Math.max(0, 1.0 - Math.abs(Math.sin(theta)) / 0.97)   // tuyến tính theo x chính diện => mép dưới là đường chéo thẳng
+                            : 0;
+
+                            const sTop = 0.902;
+                            const sBot = THREE.MathUtils.lerp(0.835, 0.778, frontPointProfile);
+                            const sEval = THREE.MathUtils.lerp(sTop, sBot, v);
+
+                            const pNeck = AnatomicalSurfaceEngine.evalMannequinPoint(sEval, theta, state);
+                            const nRad = new THREE.Vector3(Math.sin(theta), 0.06, Math.cos(theta)).normalize();
+
+                            const standOffset = 0.0028 + v * 0.0008;
+                            const pOut = pNeck.clone().addScaledVector(nRad, standOffset);
+                            const pIn = pNeck.clone().addScaledVector(nRad, standOffset - 0.0016);
+
+                            rowO.push(pOut);
+                            rowI.push(pIn);
+                            rowU.push(new THREE.Vector2(u, v));
+                        }
+                        colOut.push(rowO);
+                        colIn.push(rowI);
+                        colUv.push(rowU);
+                    }
+                    const shirtCollarGeom = this.buildThickGridGeometry(colOut, colIn, colUv);
+                    const shirtCollarMesh = new THREE.Mesh(shirtCollarGeom, materials.shirt);
+                    shirtCollarMesh.castShadow = true;
+                    shirtCollarMesh.receiveShadow = true;
+                    group.add(shirtCollarMesh);
+                }
+
+                // D. Silk Tie with Sculpted Spherical/Teardrop Knot (matching reference image)
+                if (state.showTie && state.showShirt) {
+                    const pKnot = AnatomicalSurfaceEngine.evalTorsoBodySection(0.946, 0, state, false, 0);
+                    const knotGeom = new THREE.SphereGeometry(0.0145, 24, 20);
+                    knotGeom.scale(0.96, 1.06, 0.82);
+                    const knotMesh = new THREE.Mesh(knotGeom, materials.tie);
+                    knotMesh.position.set(0, pKnot.y + 0.003, pKnot.z + 0.0115);
+                    knotMesh.castShadow = true;
+                    group.add(knotMesh);
+
+                    const tieRows = 24, tieCols = 8;
+                    const tOut = [], tIn = [], tUv = [];
+                    for (let r = 0; r <= tieRows; r++) {
+                        const v = r / tieRows;
+                        const tEval = THREE.MathUtils.lerp(0.938, 0.42, v);
+                        const halfW = v < 0.86
+                            ? THREE.MathUtils.lerp(0.009, 0.028, Math.pow(v / 0.86, 0.88))
+                            : THREE.MathUtils.lerp(0.028, 0.002, (v - 0.86) / 0.14);
+
+                        const rowO = [], rowI = [], rowU = [];
+                        for (let c = 0; c <= tieCols; c++) {
+                            const u = c / tieCols;
+                            const xOff = (u - 0.5) * 2 * halfW;
+                            const ang = xOff / (0.14 * m.chestScale);
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(tEval, ang, state, false, 0);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(tEval, ang, state, false, 0);
+                            const arch = Math.sin(u * Math.PI) * 0.0028;
+                            rowO.push(p.clone().addScaledVector(n, 0.0060 + arch));
+                            rowI.push(p.clone().addScaledVector(n, 0.0040));
+                            rowU.push(new THREE.Vector2(u, v));
+                        }
+                        tOut.push(rowO);
+                        tIn.push(rowI);
+                        tUv.push(rowU);
+                    }
+                    const tieBladeGeom = this.buildThickGridGeometry(tOut, tIn, tUv);
+                    const tieBladeMesh = new THREE.Mesh(tieBladeGeom, materials.tie);
+                    tieBladeMesh.castShadow = true;
+                    group.add(tieBladeMesh);
+                }
+
+                // E. Bespoke Inner Waistcoat (Áo Gile)
+                if (state.showWaistcoat) {
+                    const wRows = 26, wCols = 28;
+                    const wPos = [], wUvs = [], wInd = [];
+                    for (let r = 0; r <= wRows; r++) {
+                        const v = r / wRows;
+                        const t = THREE.MathUtils.lerp(0.28, 0.92, v);
+                        const vNeckHalfAng = t > 0.62 ? ((t - 0.62) / 0.30) * 0.36 : 0.0;
+
+                        for (let c = 0; c <= wCols; c++) {
+                            const u = c / wCols;
+                            const side = u < 0.5 ? -1 : 1;
+                            const uSide = u < 0.5 ? (0.5 - u) * 2 : (u - 0.5) * 2;
+                            const ang = side * THREE.MathUtils.lerp(vNeckHalfAng, 0.72, uSide);
+
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, false, 0);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, false, 0);
+                            p.addScaledVector(n, 0.0072);
+                            wPos.push(p.x, p.y, p.z);
+                            wUvs.push(u * 2, v * 2);
+                        }
+                    }
+                    for (let r = 0; r < wRows; r++) {
+                        for (let c = 0; c < wCols; c++) {
+                            if (c === Math.floor(wCols / 2) - 1 && r > wRows * 0.5) continue;
+                            const a = r * (wCols + 1) + c;
+                            const b = a + 1;
+                            const d = (r + 1) * (wCols + 1) + c;
+                            const e = d + 1;
+                            wInd.push(a, b, e, a, e, d);
+                        }
+                    }
+                    const waistGeom = new THREE.BufferGeometry();
+                    waistGeom.setAttribute('position', new THREE.Float32BufferAttribute(wPos, 3));
+                    waistGeom.setAttribute('uv', new THREE.Float32BufferAttribute(wUvs, 2));
+                    waistGeom.setIndex(wInd);
+                    waistGeom.computeVertexNormals();
+                    const waistMesh = new THREE.Mesh(waistGeom, materials.suitOuter);
+                    waistMesh.receiveShadow = true;
+                    group.add(waistMesh);
+                }
+
+                return group;
+            }
+
+            /**
+             * 2. BESPOKE JACKET BODY PANELS (LEFT/RIGHT FRONT QUARTERS, BACK PANELS & BEMBERG LINING)
+             *    Follows the continuous anatomical chest, waist, shoulder slope, and armhole scye seam.
+             */
+            static buildJacketBody(state, materials) {
+                const group = new THREE.Group();
+                const m = AnatomicalSurfaceEngine.getMetrics(state);
+                const rows = 56;
+                const cols = 28;
+
+                // A. Left (+1) and Right (-1) Front Jacket Panels
+                [1, -1].forEach((sideSign) => {
+                    const outerGrid = [];
+                    const innerGrid = [];
+                    const liningGrid = [];
+                    const uvGrid = [];
+
+                    for (let r = 0; r <= rows; r++) {
+                        const t = r / rows;
+                        const angFront = AnatomicalSurfaceEngine.getJacketBodyInnerAngle(t, sideSign, state);
+
+                        // Side seam & Armhole Scye boundary angle
+                        let angSide;
+                        if (t <= m.tArmpit) {
+                            const ventSlit = (state.vent === 'double' && t < 0.26) ? 0.012 : 0.0;
+                            angSide = sideSign * (Math.PI * 0.52 - ventSlit);
+                        } else if (t < m.tShoulder) {
+                            const uScye = (t - m.tArmpit) / (m.tShoulder - m.tArmpit);
+                            const scyeIndent = Math.sin(uScye * Math.PI) * 0.085;
+                            angSide = sideSign * (Math.PI * 0.50 - scyeIndent);
+                        } else {
+                            angSide = sideSign * Math.PI * 0.50;
+                        }
+
+                        const rowOut = [];
+                        const rowIn = [];
+                        const rowLin = [];
+                        const rowUv = [];
+
+                        for (let c = 0; c <= cols; c++) {
+                            const u = c / cols;
+                            const angle = THREE.MathUtils.lerp(angFront, angSide, u);
+
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, angle, state, true, sideSign);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, angle, state, true, sideSign);
+
+                            // Depress the underlying front panel surface slightly in the zone directly underneath
+                            // the lapel and collar (t > breakT - 0.02, u < 0.45) so it never pokes through the lapel or collar
+                            const inLapelZone = this.smoothstep(m.breakT - 0.02, m.breakT + 0.03, t);
+                            const collarZoneBoost = this.smoothstep(m.gorgeT - 0.05, 1.0, t);
+                            const maskWidth = THREE.MathUtils.lerp(0.42, 0.64, collarZoneBoost);
+                            const underBladeMask = inLapelZone * (1.0 - this.smoothstep(0.05, maskWidth, u));
+                            const outerThickness = THREE.MathUtils.lerp(0.0018, -0.0020, underBladeMask);
+                            const innerThickness = THREE.MathUtils.lerp(0.0004, -0.0030, underBladeMask);
+
+                            rowOut.push(p.clone().addScaledVector(n, outerThickness));
+                            rowIn.push(p.clone().addScaledVector(n, innerThickness));
+
+                            // Recess Bemberg lining slightly away from the outer perimeter so it never peeks out
+                            const uLin = THREE.MathUtils.clamp(0.08 + u * 0.89, 0.08, 0.97);
+                            const angLin = THREE.MathUtils.lerp(angFront, angSide, uLin);
+                            const tLin = THREE.MathUtils.clamp(t, 0.02, 0.94);
+                            const pLin = AnatomicalSurfaceEngine.evalTorsoBodySection(tLin, angLin, state, true, sideSign);
+                            const nLin = AnatomicalSurfaceEngine.evalTorsoNormal(tLin, angLin, state, true, sideSign);
+                            const linOffset = THREE.MathUtils.lerp(-0.0055, -0.0055, underBladeMask);
+                            rowLin.push(pLin.clone().addScaledVector(nLin, linOffset));
+
+                            const arcMetric = p.x * 2.2 + sideSign * u * 0.15;
+                            rowUv.push(new THREE.Vector2(arcMetric, t * 2.4));
+                        }
+
+                        if (sideSign < 0) {
+                            rowOut.reverse();
+                            rowIn.reverse();
+                            rowLin.reverse();
+                            rowUv.reverse();
+                        }
+
+                        outerGrid.push(rowOut);
+                        innerGrid.push(rowIn);
+                        liningGrid.push(rowLin);
+                        uvGrid.push(rowUv);
+                    }
+
+                    const frontGeom = this.buildThickGridGeometry(outerGrid, innerGrid, uvGrid);
+                    const frontMesh = new THREE.Mesh(frontGeom, materials.suitOuter);
+                    frontMesh.castShadow = true;
+                    frontMesh.receiveShadow = true;
+                    group.add(frontMesh);
+
+                    // Inner Bemberg Silk Lining Layer
+                    const linPos = [];
+                    const linUvs = [];
+                    const linInd = [];
+                    for (let r = 0; r <= rows; r++) {
+                        for (let c = 0; c <= cols; c++) {
+                            const pt = liningGrid[r][c];
+                            const uv = uvGrid[r][c];
+                            linPos.push(pt.x, pt.y, pt.z);
+                            linUvs.push(uv.x, uv.y);
+                        }
+                    }
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            const a = r * (cols + 1) + c;
+                            const b = a + 1;
+                            const d = (r + 1) * (cols + 1) + c;
+                            const e = d + 1;
+                            linInd.push(a, e, b, a, d, e);
+                        }
+                    }
+                    const linGeom = new THREE.BufferGeometry();
+                    linGeom.setAttribute('position', new THREE.Float32BufferAttribute(linPos, 3));
+                    linGeom.setAttribute('uv', new THREE.Float32BufferAttribute(linUvs, 2));
+                    linGeom.setIndex(linInd);
+                    linGeom.computeVertexNormals();
+                    group.add(new THREE.Mesh(linGeom, materials.lining));
+                });
+
+                // B. Sculpted Back Panels & Vent System (Side Vents, Center Vent, or Ventless)
+                [1, -1].forEach((sideSign) => {
+                    const bOutGrid = [];
+                    const bInGrid = [];
+                    const bUvGrid = [];
+
+                    for (let r = 0; r <= rows; r++) {
+                        const t = r / rows;
+
+                        let angSide;
+                        if (t <= m.tArmpit) {
+                            const ventSlit = (state.vent === 'double' && t < 0.26) ? 0.014 : 0.0;
+                            angSide = sideSign * (Math.PI * 0.52 + ventSlit);
+                        } else if (t < m.tShoulder) {
+                            const uScye = (t - m.tArmpit) / (m.tShoulder - m.tArmpit);
+                            const scyeIndent = Math.sin(uScye * Math.PI) * 0.055;
+                            angSide = sideSign * (Math.PI * 0.50 + scyeIndent);
+                        } else {
+                            angSide = sideSign * Math.PI * 0.50;
+                        }
+
+                        const centerSlit = (state.vent === 'center' && t < 0.26) ? 0.016 : 0.0;
+                        const angBackCenter = sideSign * (Math.PI - centerSlit);
+
+                        const rowOut = [];
+                        const rowIn = [];
+                        const rowUv = [];
+
+                        for (let c = 0; c <= cols; c++) {
+                            const u = c / cols;
+                            const angle = THREE.MathUtils.lerp(angSide, angBackCenter, u);
+
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, angle, state, true, 0);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, angle, state, true, 0);
+
+                            const ventLift = (state.vent === 'center' && t < 0.26 && sideSign > 0 && u > 0.82) ? 0.0016 : 0.0;
+                            const neckRimTaper = 1.0 - 0.55 * this.smoothstep(0.90, 1.0, t);
+
+                            const pOut = p.clone().addScaledVector(n, 0.0022 * neckRimTaper + ventLift);
+                            const pIn = p.clone().addScaledVector(n, 0.0004 + ventLift);
+
+                            if (c === cols && (state.vent !== 'center' || t >= 0.26)) {
+                                pOut.x = 0;
+                                pIn.x = 0;
+                            }
+
+                            rowOut.push(pOut);
+                            rowIn.push(pIn);
+                            rowUv.push(new THREE.Vector2(p.x * 2.2, t * 2.4));
+                        }
+
+                        if (sideSign < 0) {
+                            rowOut.reverse();
+                            rowIn.reverse();
+                            rowUv.reverse();
+                        }
+
+                        bOutGrid.push(rowOut);
+                        bInGrid.push(rowIn);
+                        bUvGrid.push(rowUv);
+                    }
+
+                    const backGeom = this.buildThickGridGeometry(bOutGrid, bInGrid, bUvGrid);
+                    const backMesh = new THREE.Mesh(backGeom, materials.suitOuter);
+                    backMesh.castShadow = true;
+                    backMesh.receiveShadow = true;
+                    group.add(backMesh);
+                });
+
+                return group;
+            }
+
+            /**
+             * 3. ARCHITECTURAL BESPOKE LAPEL (VE ÁO) & COLLAR (BÂU ÁO) SYSTEM
+             *    - Straight, crisp, continuous geometry from Break Point through Gorge Line up to the shoulder.
+             *    - Flat, sleek Upper Collar that lies flush on the clavicle/shoulder slope and tapers smoothly
+             *      down onto the shoulder fabric without bulging or curving.
+             */
+            static buildLapelsAndCollar(state, materials) {
+                const group = new THREE.Group();
+                const m = AnatomicalSurfaceEngine.getMetrics(state);
+                const lapelMat = state.satinLapel ? materials.satin : materials.suitOuter;
+                const neckScale = 0.68 + 0.32 * m.chestScale;
+
+                const dbBoost = m.isDB ? 1.08 : 1.0;
+                const lapelWidthM = (state.lapelWidth / 100) * 0.64 * dbBoost;
+                const collarWidthM = (state.collarWidth / 100) * 0.72;
+                const rollHeightM = (state.lapelRoll / 100) * 0.045;
+                const curveBelly = state.lapelCurve !== undefined ? state.lapelCurve : 0.0;
+
+                // Độ nâng ve (mm -> m) và biên độ nếp cuốn mềm quanh đường bẻ ve
+                const liftM = (state.lapelLift !== undefined ? state.lapelLift : 1.8) / 1000;
+                const rollAmp = 0.0012 + 0.0018 * (state.lapelRoll !== undefined ? state.lapelRoll : 0.4);
+                const plateauAmp = 0.0012 + 0.0006 * (state.lapelRoll !== undefined ? state.lapelRoll : 0.4);
+
+                const cols = 24;
+                const cShared = state.lapel === 'shawl' ? cols : 13;
+                const rowsLapel = 60;
+                const rowsCollar = 52;
+
+                const applyNeckHugAndIncline = (p, u, angEval, amount, backExtraRise = 0.0, nrm = null) => {
+  const p0 = p.clone();
+  const neckProximity = Math.max(0.0, 1.0 - u);
+  const inclineProfile = 0.42 * neckProximity + 0.58 * Math.pow(neckProximity, 1.65);
+  p.y += amount * (0.0068 + backExtraRise) * inclineProfile;
+
+  const frontMask = this.smoothstep(0.30, 0.80, Math.cos(angEval));
+const hugStrength = amount * 0.68 * Math.pow(neckProximity, 1.35) * (1.0 - 0.85 * frontMask);
+  const cosA = Math.cos(angEval);
+  const sinA = Math.sin(angEval);
+  const targetX = sinA * 0.0558 * neckScale;
+  const targetZ = cosA * (cosA >= 0 ? 0.0568 : 0.0555) * neckScale + 0.004;
+  p.x = THREE.MathUtils.lerp(p.x, targetX, hugStrength);
+  p.z = THREE.MathUtils.lerp(p.z, targetZ, hugStrength * 0.75);
+
+  // Không cho điểm ve lún vào trong mặt thân: bù lại phần dịch ngược pháp tuyến
+  if (nrm) {
+    const inward = p0.sub(p).dot(nrm);
+    if (inward > 0) p.addScaledVector(nrm, inward);
+  }
+};
+
+                [1, -1].forEach((sideSign) => {
+                    const startT = (m.isDB && sideSign < 0)
+                        ? Math.max(m.breakT, m.tCross - 0.025)
+                        : m.breakT;
+
+                    const xBreak = AnatomicalSurfaceEngine.getFrontRollX(startT, sideSign, state);
+                    const tGorgeIn = m.gorgeT;
+                    const xGorgeIn = AnatomicalSurfaceEngine.getFrontRollX(tGorgeIn, sideSign, state);
+
+                    let tNotchVertex, xNotchVertex;
+                    let tCollarTip, xCollarTip, tLapelTip, xLapelTip;
+
+                    if (state.lapel === 'notch') {
+                        tNotchVertex = tGorgeIn - 0.024;
+                        xNotchVertex = xGorgeIn + sideSign * (collarWidthM * 0.68);
+                        tCollarTip = tNotchVertex - 0.002;
+                        xCollarTip = xGorgeIn + sideSign * (collarWidthM * 1.08);
+                        tLapelTip = tNotchVertex - 0.016;
+                        xLapelTip = xGorgeIn + sideSign * (lapelWidthM * 1.04);
+                    } else if (state.lapel === 'peak') {
+                        tNotchVertex = tGorgeIn - 0.028;
+                        xNotchVertex = xGorgeIn + sideSign * (collarWidthM * 0.65);
+                        tCollarTip = tNotchVertex + 0.014;
+                        xCollarTip = xGorgeIn + sideSign * (collarWidthM * 1.05);
+                        tLapelTip = tNotchVertex + 0.008;
+                        xLapelTip = xGorgeIn + sideSign * (lapelWidthM * 1.16);
+                    } else {
+                        tNotchVertex = tGorgeIn - 0.024;
+                        xNotchVertex = xGorgeIn + sideSign * (collarWidthM * 1.12);
+                        tCollarTip = tLapelTip = tNotchVertex;
+                        xCollarTip = xLapelTip = xNotchVertex;
+                    }
+
+                    const xToTorsoAngle = (tVal, xVal) => {
+                        const rxAtT = AnatomicalSurfaceEngine.getTorsoRxAt(tVal, state, true);
+                        return Math.asin(THREE.MathUtils.clamp(xVal / rxAtT, -0.96, 0.96));
+                    };
+
+                    const getGorgeCoords = (c, isCollar) => {
+                        let tVal, xVal;
+                        if (c <= cShared) {
+                            const w = c / cShared;
+                            tVal = THREE.MathUtils.lerp(tGorgeIn, tNotchVertex, w);
+                            xVal = THREE.MathUtils.lerp(xGorgeIn, xNotchVertex, w);
+                        } else {
+                            const wOut = (c - cShared) / (cols - cShared);
+                            if (isCollar) {
+                                tVal = THREE.MathUtils.lerp(tNotchVertex, tCollarTip, wOut);
+                                xVal = THREE.MathUtils.lerp(xNotchVertex, xCollarTip, wOut);
+                            } else {
+                                tVal = THREE.MathUtils.lerp(tNotchVertex, tLapelTip, wOut);
+                                xVal = THREE.MathUtils.lerp(xNotchVertex, xLapelTip, wOut);
+                            }
+                        }
+                        return { t: tVal, x: xVal, ang: xToTorsoAngle(tVal, xVal) };
+                    };
+
+                    const evalSurfaceAndNormal = (tVal, angVal) => {
+                        const tClamped = THREE.MathUtils.clamp(tVal, 0.25, 0.998);
+                        const p = AnatomicalSurfaceEngine.evalTorsoBodySection(tClamped, angVal, state, true, sideSign);
+                        const n = AnatomicalSurfaceEngine.evalTorsoNormal(tClamped, angVal, state, true, sideSign);
+                        return { p, n };
+                    };
+
+                    // ====================================================================
+                    // ĐƯỜNG NỐI VE–BÂU THẲNG TUYỆT ĐỐI
+                    // Tính độ lệch (delta) kéo mỗi điểm trên đường nối cong về đoạn thẳng 3D
+                    // giữa các đỉnh: Cổ -> Notch/Peak -> Mũi ve (hoặc mũi bâu).
+                    // Phần võng do mặt thân cong được bù bằng một độ nâng nhỏ theo pháp tuyến.
+                    // ====================================================================
+                    const seamCurved = (c, isCollar) => {
+                        const g = getGorgeCoords(c, isCollar);
+                        const { p, n } = evalSurfaceAndNormal(g.t, g.ang);
+                        applyNeckHugAndIncline(p, c / cols, g.ang, 1.0, 0.0, n);
+                        return { p, n };
+                    };
+                    const cornerA = seamCurved(0, false);
+                    const cornerN = seamCurved(cShared, false);
+                    const cornerTipL = seamCurved(cols, false);
+                    const cornerTipC = seamCurved(cols, true);
+
+                    const buildSeamDeltas = (isCollar) => {
+                        const tip = isCollar ? cornerTipC : cornerTipL;
+                        const arr = [];
+                        for (let c = 0; c <= cols; c++) {
+                            const cur = seamCurved(c, isCollar);
+                            let A, B, w;
+                            if (c <= cShared) {
+                                A = cornerA; B = cornerN; w = cShared > 0 ? c / cShared : 0;
+                            } else {
+                                A = cornerN; B = tip; w = (c - cShared) / (cols - cShared);
+                            }
+                            const chord = A.p.clone().lerp(B.p, w);
+                            const L = A.p.distanceTo(B.p);
+                            // Bù độ võng của dây cung so với mặt thân (bán kính ~15cm)
+                            const sagComp = 0.9 * (L * L / (8 * 0.15)) * 4 * w * (1 - w);
+                            chord.addScaledVector(cur.n, sagComp);
+                            arr.push(chord.sub(cur.p));
+                        }
+                        return arr;
+                    };
+                    const deltaLapel = buildSeamDeltas(false);
+                    const deltaCollar = buildSeamDeltas(true);
+
+                    const angShoulder = sideSign * Math.PI * 0.50;
+                    const tShoulderIn = 0.997;
+                    const tShoulderOut = THREE.MathUtils.clamp(0.958 - (state.collarWidth - 3.8) * 0.010, 0.938, 0.972);
+
+                    // ====================================================================
+                    // PART A: LAPEL BLADE
+                    // ====================================================================
+                    const lapOutGrid = [], lapInGrid = [], lapUvGrid = [];
+                    const totalLapelXDelta = xLapelTip - xGorgeIn;
+
+                    for (let r = 0; r <= rowsLapel; r++) {
+                        const v = r / rowsLapel;
+                        const footEnv = this.smootherstep(0.0, 0.07, v);
+
+                        let dbUnderOffset = 0.0;
+                        if (m.isDB && sideSign < 0 && v < 0.20) {
+                            dbUnderOffset = -(1.0 - v / 0.20) * 0.0024;
+                        }
+
+                        // Độ nâng ve: nhẹ ở chân ve, đủ ở phần thân ve, khớp hoàn toàn với bâu tại Gorge
+                        const liftV = THREE.MathUtils.lerp(0.80, 1.0, this.smootherstep(0.0, 0.30, v));
+const plateauV = this.smootherstep(0.0, 0.20, v);
+                        const puffV = this.smootherstep(0.0, 0.22, v) * (1.0 - this.smootherstep(0.50, 1.0, v));
+                        const wSeam = this.smootherstep(0.62, 1.0, v);
+
+                        const rowO = [], rowI = [], rowU = [];
+
+                        for (let c = 0; c <= cols; c++) {
+                            const u = c / cols;
+                            const gTarget = getGorgeCoords(c, false);
+
+                            const uLat = Math.abs(totalLapelXDelta) > 1e-5
+                                ? (gTarget.x - xGorgeIn) / totalLapelXDelta
+                                : u;
+
+                            const tEval = THREE.MathUtils.lerp(startT, gTarget.t, v);
+                            const xInAtRow = AnatomicalSurfaceEngine.getFrontRollX(tEval, sideSign, state);
+
+                            const bellyShape = state.lapel === 'shawl'
+                                ? Math.sin(v * Math.PI * 0.88) * 0.012
+                                : Math.sin(v * Math.PI) * 0.0035 * curveBelly;
+                            const xOutAtRow = THREE.MathUtils.lerp(xBreak, xLapelTip, v) + sideSign * bellyShape;
+
+                            const xEval = THREE.MathUtils.lerp(xInAtRow, xOutAtRow, uLat);
+                            const angEval = xToTorsoAngle(tEval, xEval);
+
+                            const { p, n } = evalSurfaceAndNormal(tEval, angEval);
+
+                            const gorgeNeckBlend = v;
+                            applyNeckHugAndIncline(p, u, angEval, gorgeNeckBlend, 0.0, n);
+
+                            // Kéo đường nối Gorge và cạnh bước K/nhọn về đoạn thẳng
+                            p.addScaledVector(deltaLapel[c], wSeam);
+
+                            const outerEdgeTaper = 1.0 - 0.25 * this.smootherstep(0.68, 1.0, u);
+                            const flatCamber = Math.sin(u * Math.PI) * rollHeightM * 0.14 * footEnv;
+
+                            // Nếp cuốn mềm quanh đường bẻ ve: phồng nhẹ gần nút, về 0 ở mép trong, mép ngoài và đường nối
+                            const plateauU = this.smoothstep(0.0, 0.10, u) * (1.0 - 0.30 * this.smoothstep(0.75, 1.0, u));
+const plateau = plateauAmp * plateauU * plateauV;     // nâng đều cả mảng ve
+
+const puffU = this.smoothstep(0.0, 0.26, u) * (1.0 - this.smoothstep(0.26, 0.82, u));
+const rollPuff = rollAmp * 0.55 * puffU * puffV;      // nếp cuốn gần nút, nhẹ hơn trước
+
+let seamGroove = 0;
+if (c <= cShared && state.lapel !== 'shawl') {
+  const grooveEnv = this.smootherstep(0.92, 1.0, v);
+  const spanProfile = Math.sin((c / cShared) * Math.PI * 0.95);
+  seamGroove = grooveEnv * spanProfile * 0.0007;
+}
+
+const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + dbUnderOffset + liftM * liftV + plateau + rollPuff;
+const baseLeafThick = THREE.MathUtils.lerp(0.0017, 0.0023, footEnv) * outerEdgeTaper;
+const topOffset = botOffset + baseLeafThick + flatCamber + rollPuff * 0.35 - seamGroove;
+
+                            rowI.push(p.clone().addScaledVector(n, botOffset));
+                            rowO.push(p.clone().addScaledVector(n, topOffset));
+                            rowU.push(new THREE.Vector2(u * 0.45, v * 1.6));
+                        }
+
+                        if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
+                        lapOutGrid.push(rowO); lapInGrid.push(rowI); lapUvGrid.push(rowU);
+                    }
+
+                    const lapelGeom = this.buildThickGridGeometry(lapOutGrid, lapInGrid, lapUvGrid);
+                    const lapelMesh = new THREE.Mesh(lapelGeom, lapelMat);
+                    lapelMesh.castShadow = true;
+                    lapelMesh.receiveShadow = true;
+                    group.add(lapelMesh);
+
+                    // ====================================================================
+                    // PART B: UPPER COLLAR LEAF
+                    // ====================================================================
+                    const colOutGrid = [], colInGrid = [], colUvGrid = [];
+                    const targetBackAng = sideSign * Math.PI;
+                    const vShoulder = 0.36;
+                    const tBackIn = 0.998;
+                    const tBackOut = THREE.MathUtils.clamp(0.962 - (state.collarWidth - 3.8) * 0.010, 0.942, 0.975);
+
+                    for (let r = 0; r <= rowsCollar; r++) {
+                        const vCol = r / rowsCollar;
+                        const wSeamC = 1.0 - this.smootherstep(0.0, 0.24, vCol);
+                        const rowO = [], rowI = [], rowU = [];
+
+                        for (let c = 0; c <= cols; c++) {
+                            const u = c / cols;
+                            const gStart = getGorgeCoords(c, true);
+                            const tShTarget = THREE.MathUtils.lerp(tShoulderIn, tShoulderOut, u);
+                            const tBackTarget = THREE.MathUtils.lerp(tBackIn, tBackOut, u);
+
+                            let tEval, angEval;
+                            if (vCol <= vShoulder) {
+                                const w1 = vCol / vShoulder;
+tEval = THREE.MathUtils.lerp(gStart.t, tShTarget, w1);
+
+// Cột trong cùng (sát cổ) bám đường bẻ ve thẳng; các cột ngoài giữ độ loe bâu như cũ
+const xShRaw  = sideSign * AnatomicalSurfaceEngine.getTorsoRxAt(tShTarget, state, true) * 0.94;
+const xLineTop = sideSign * Math.abs(AnatomicalSurfaceEngine.getFrontRollX(tShTarget, sideSign, state));
+const lineBlend = 1.0 - this.smoothstep(0.0, 0.18, u);
+const xShTarget = THREE.MathUtils.lerp(
+  xShRaw,
+  sideSign * Math.min(Math.abs(xShRaw), Math.abs(xLineTop)),
+  lineBlend
+);
+
+const xLinear = THREE.MathUtils.lerp(gStart.x, xShTarget, w1);
+const angFromX = xToTorsoAngle(tEval, xLinear);
+// Chỉ quay ra vai ở đoạn cuối (khuất sau cổ), không còn lượn ra ngay trên Gorge
+angEval = THREE.MathUtils.lerp(angFromX, angShoulder, this.smoothstep(0.72, 1.0, w1));
+                            } else {
+                                const w2 = (vCol - vShoulder) / (1.0 - vShoulder);
+                                tEval = THREE.MathUtils.lerp(tShTarget, tBackTarget, this.smoothstep(0.0, 1.0, w2));
+                                angEval = THREE.MathUtils.lerp(angShoulder, targetBackAng, w2);
+                            }
+
+                            const { p, n } = evalSurfaceAndNormal(tEval, angEval);
+
+                            // Bâu nghiêng nhẹ từ vai lên cổ, ôm sát (giảm độ dựng thêm: 6.2mm -> 5.0mm)
+                            const sideBackWrap = this.smoothstep(0.0, 0.42, vCol);
+                            applyNeckHugAndIncline(p, u, angEval, 1.0, 0.0050 * sideBackWrap, n);
+
+                            // Cùng đường nối thẳng với ve áo (khớp tuyệt đối tại vCol = 0)
+                            p.addScaledVector(deltaCollar[c], wSeamC);
+
+                            const outerEdgeTaper = 1.0 - 0.25 * this.smootherstep(0.68, 1.0, u);
+                            const flatCamber = Math.sin(u * Math.PI) * rollHeightM * 0.14 * (1.0 - 0.5 * sideBackWrap);
+
+                            let seamGroove = 0;
+                            if (c <= cShared && state.lapel !== 'shawl') {
+                                const grooveEnv = 1.0 - this.smootherstep(0.0, 0.12, vCol);
+                                const spanProfile = Math.sin((c / cShared) * Math.PI * 0.95);
+                                seamGroove = grooveEnv * spanProfile * 0.0007;
+                            }
+
+                            // Cùng độ nâng liftM như ve để hai phần liền mạch
+                            const plateauUc = this.smoothstep(0.0, 0.10, u) * (1.0 - 0.30 * this.smoothstep(0.75, 1.0, u));
+const collarPlateau = plateauAmp * plateauUc * (1.0 - this.smootherstep(0.0, 0.5, vCol));
+const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + liftM + collarPlateau;
+                            const leafThick = 0.0023 * outerEdgeTaper;
+                            const topOffset = botOffset + leafThick + flatCamber - seamGroove;
+
+                            const pBot = p.clone().addScaledVector(n, botOffset);
+                            const pTop = p.clone().addScaledVector(n, topOffset);
+
+                            if (r === rowsCollar) { pBot.x = 0; pTop.x = 0; }
+
+                            rowI.push(pBot);
+                            rowO.push(pTop);
+                            rowU.push(new THREE.Vector2(u * 0.45, 1.6 + vCol * 0.8));
+                        }
+
+                        if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
+                        colOutGrid.push(rowO); colInGrid.push(rowI); colUvGrid.push(rowU);
+                    }
+
+                    const collarGeom = this.buildThickGridGeometry(colOutGrid, colInGrid, colUvGrid);
+                    const collarMesh = new THREE.Mesh(collarGeom, lapelMat);
+                    collarMesh.castShadow = true;
+                    collarMesh.receiveShadow = true;
+                    group.add(collarMesh);
+                });
+
+                return group;
+            }
+
+            /**
+             * 4. HORIZONTAL-SLICED DELTOID DOME & ARMHOLE SCYE SLEEVE ARCHITECTURE
+             *    - Every cross-section s in [0, 1] is a twist-free horizontal slice at height y(s).
+             *    - In the Armhole Cap Zone (s in [0, sArmpit]), the inner edge (theta = PI) is anchored
+             *      directly along the torso's Armhole Scye Seam from (shoulderSeamX, shoulderTopY) down to
+             *      (armpitSeamX, armpitBotY), while the outer edge (theta = 0) continues the shoulder slope
+             *      smoothly over the deltoid cap out to fullShoulderHalfW and straight down to the wrist cuff.
+             *    - In the Side View, radZ(s) forms a broad, round elliptical dome right at the top of the
+             *      shoulder and tapers monotonically down to the wrist cuff.
+             */
+            static buildSleeves(state, materials) {
+                const group = new THREE.Group();
+                const m = AnatomicalSurfaceEngine.getMetrics(state);
+                const sleeveLenM = (state.sleeveLength / 100) * m.hScale;
+                const bicepR = (state.bicep / (2 * Math.PI)) / 100;
+                const cuffR = (state.cuffWidth / (2 * Math.PI)) / 100;
+
+                [1, -1].forEach((sideSign) => {
+                    const sRows = 44;
+                    const sCols = 36;
+                    const outerGrid = [];
+                    const innerGrid = [];
+                    const uvGrid = [];
+
+                    // Reference anatomical landmarks at the shoulder seam (t = m.tShoulder) and armpit (t = m.tArmpit)
+                    const pShoulderTop = AnatomicalSurfaceEngine.evalTorsoBodySection(m.tShoulder, sideSign * Math.PI * 0.5, state, true, 0);
+                    const pArmpitBot = AnatomicalSurfaceEngine.evalTorsoBodySection(m.tArmpit, sideSign * Math.PI * 0.5, state, true, 0);
+
+                    const shoulderTopY = pShoulderTop.y + 0.001;
+                    const armpitBotY = pArmpitBot.y - 0.004;
+                    const shoulderSeamX = Math.abs(pShoulderTop.x) - 0.003;
+                    const armpitSeamX = Math.abs(pArmpitBot.x) - 0.008;
+                    const deltoidOuterX = Math.max(shoulderSeamX + 0.032, m.fullShoulderHalfW + 0.004);
+                    const shoulderCenterZ = pShoulderTop.z + 0.004;
+
+                    const cuffY = shoulderTopY - sleeveLenM;
+                    const sArmpit = 0.24;
+                    let cuffCenter = new THREE.Vector3();
+
+                    for (let r = 0; r <= sRows; r++) {
+                        const s = r / sRows;
+
+                        // 1. Vertical coordinate y(s): smooth horizontal slice from shoulderTopY down to cuffY
+                        let ySlice;
+                        if (s <= sArmpit) {
+                            const uCap = s / sArmpit;
+                            ySlice = THREE.MathUtils.lerp(shoulderTopY, armpitBotY, Math.pow(uCap, 1.12));
+                        } else {
+                            const uArm = (s - sArmpit) / (1.0 - sArmpit);
+                            ySlice = THREE.MathUtils.lerp(armpitBotY, cuffY, uArm);
+                        }
+
+                        // 2. Inner (xIn) and Outer (xOut) lateral boundaries at slice s
+                        const cuffOuterX = deltoidOuterX + 0.012;
+                        const cuffInnerX = cuffOuterX - cuffR * 1.72;
+
+                        let xIn, xOut;
+                        if (s <= sArmpit) {
+                            const uCap = s / sArmpit;
+                            // Inner boundary follows the torso's Armhole Scye Seam from shoulder point down to armpit
+                            xIn = THREE.MathUtils.lerp(shoulderSeamX - 0.004, armpitSeamX, this.smoothstep(0.0, 1.0, uCap));
+                            // Outer boundary continues the shoulder slope over the rounded deltoid cap
+                            const deltoidCurve = Math.pow(uCap, 0.52);
+                            xOut = THREE.MathUtils.lerp(shoulderSeamX, deltoidOuterX, deltoidCurve);
+                        } else {
+                            const uArm = (s - sArmpit) / (1.0 - sArmpit);
+                            xIn = THREE.MathUtils.lerp(armpitSeamX, cuffInnerX, Math.pow(uArm, 0.92));
+                            xOut = THREE.MathUtils.lerp(deltoidOuterX, cuffOuterX, uArm);
+                        }
+
+                        const centerX = 0.5 * (xOut + xIn);
+                        const radX = Math.max(0.004, 0.5 * (xOut - xIn));
+
+                        // 3. Front-to-Back Radius radZ(s):
+                        //    Broad, round elliptical dome at the very top of the shoulder (s in [0, 0.10]),
+                        //    then tapering monotonically smaller from the upper deltoid down to the wrist cuff!
+                        const capMaxRz = bicepR * 1.10;
+                        const wristRz = cuffR * 0.94;
+                        let radZ;
+                        if (s < 0.10) {
+                            const uDome = s / 0.10;
+                            const domeArch = Math.pow(Math.sin(uDome * Math.PI * 0.5), 0.36);
+                            radZ = THREE.MathUtils.lerp(capMaxRz * 0.52, capMaxRz, domeArch);
+                        } else {
+                            const uTaper = (s - 0.10) / 0.90;
+                            radZ = THREE.MathUtils.lerp(capMaxRz, wristRz, this.smootherstep(0.0, 1.0, uTaper));
+                        }
+
+                        // 4. Natural forward pitch of a tailored Savile Row sleeve from shoulder to cuff
+                        const forwardCurveZ = shoulderCenterZ + (s < 0.35
+                            ? s * 0.012
+                            : 0.0042 + Math.pow((s - 0.35) / 0.65, 1.20) * 0.032);
+
+                        if (r === sRows) {
+                            cuffCenter.set(sideSign * centerX, cuffY, forwardCurveZ);
+                        }
+
+                        const rowOut = [];
+                        const rowIn = [];
+                        const rowUv = [];
+
+                        for (let c = 0; c <= sCols; c++) {
+                            const u = c / sCols;
+                            // theta = 0: Outer deltoid/arm, theta = PI/2: Front, theta = PI: Inner armhole/underarm, theta = 3PI/2: Back
+                            const theta = u * Math.PI * 2;
+                            const cosT = Math.cos(theta);
+                            const sinT = Math.sin(theta);
+
+                            // nếp rủ dọc tay rất nhẹ (~1mm), tắt ở nách và cổ tay
+const sleeveEnv = this.smootherstep(0.30, 0.46, s) * (1.0 - this.smootherstep(0.86, 0.97, s));
+const sleeveFold = 0.0010 * sleeveEnv * Math.cos(5.0 * theta + 9.0 * s + 0.8);
+
+const xMag = centerX + cosT * (radX + sleeveFold);
+const x = sideSign * xMag;
+
+                            // Subtle crown dome lift at the very apex of the shoulder seam (s -> 0) so the cap rounds smoothly into the seam
+                            const apexCrownLift = (1.0 - this.smoothstep(0.0, 0.08, s)) * Math.cos(sinT * Math.PI * 0.42) * 0.004;
+                            const y = ySlice + apexCrownLift;
+
+                            let elbowCrease = 0;
+                            if (s > 0.46 && s < 0.62 && sinT > 0.2) {
+                                const env = Math.sin(((s - 0.46) / 0.16) * Math.PI);
+                                elbowCrease = Math.sin(s * 65.0) * 0.0009 * env * sinT;
+                            }
+                            const z = forwardCurveZ + sinT * (radZ + sleeveFold) + elbowCrease;
+
+                            const pOut = new THREE.Vector3(x, y, z);
+                            const nVec = new THREE.Vector3(sideSign * cosT, 0.18 * (1.0 - s), sinT).normalize();
+                            const pIn = pOut.clone().addScaledVector(nVec, -0.0035);
+
+                            rowOut.push(pOut);
+                            rowIn.push(pIn);
+                            rowUv.push(new THREE.Vector2(u * 1.5, s * 2.2));
+                        }
+
+                        if (sideSign < 0) {
+                            rowOut.reverse();
+                            rowIn.reverse();
+                            rowUv.reverse();
+                        }
+
+                        outerGrid.push(rowOut);
+                        innerGrid.push(rowIn);
+                        uvGrid.push(rowUv);
+                    }
+
+                    const sleeveGeom = this.buildThickGridGeometry(outerGrid, innerGrid, uvGrid);
+                    const sleeveMesh = new THREE.Mesh(sleeveGeom, materials.suitOuter);
+                    sleeveMesh.castShadow = true;
+                    sleeveMesh.receiveShadow = true;
+                    group.add(sleeveMesh);
+
+                    // Linen Dress Shirt Cuff Reveal
+                    if (state.showShirt) {
+                        const shirtCuffGeom = new THREE.CylinderGeometry(cuffR * 0.78, cuffR * 0.80, 0.022, 28, 1, true);
+                        const shirtCuffMesh = new THREE.Mesh(shirtCuffGeom, materials.shirt);
+                        shirtCuffMesh.position.set(cuffCenter.x, cuffCenter.y - 0.006, cuffCenter.z);
+                        group.add(shirtCuffMesh);
+                    }
+
+                    // 1 to 5 Working Surgeon's Cuff Buttons along outer-back sleeve vent
+                    const numCuffBtns = THREE.MathUtils.clamp(state.cuffButtons || 4, 1, 5);
+                    const cuffBtnR = 0.0070;
+                    for (let b = 0; b < numCuffBtns; b++) {
+                        const yOff = 0.016 + b * 0.0135;
+                        const btnPos = new THREE.Vector3(
+                            cuffCenter.x + sideSign * (cuffR * 0.82),
+                            cuffCenter.y + yOff,
+                            cuffCenter.z - cuffR * 0.28
+                        );
+                        const btnNormal = new THREE.Vector3(sideSign, 0, -0.25).normalize();
+                        const btnObj = this.createSingle3DButton(cuffBtnR, 0.0028, materials.button, materials.stitch);
+                        btnObj.position.copy(btnPos);
+                        btnObj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), btnNormal);
+                        group.add(btnObj);
+                    }
+                });
+
+                return group;
+            }
+
+            /**
+             * 5. BESPOKE POCKET SYSTEM (HIP FLAP/JETTED/PATCH, TICKET POCKET, BREAST WELT & SILK POCKET SQUARE)
+             */
+            static buildPocketsSystem(state, materials) {
+                const group = new THREE.Group();
+
+                const buildSurfacePatch = (tCenter, angCenter, tSpan, angSpan, sideSign, offsetOut, rows = 8, cols = 14) => {
+                    const outG = [], inG = [], uvG = [];
+                    for (let r = 0; r <= rows; r++) {
+                        const v = r / rows;
+                        const t = tCenter + (v - 0.5) * tSpan;
+                        const rO = [], rI = [], rU = [];
+                        for (let c = 0; c <= cols; c++) {
+                            const u = c / cols;
+                            const ang = angCenter + (u - 0.5) * angSpan;
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, sideSign);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, sideSign);
+                            rO.push(p.clone().addScaledVector(n, offsetOut));
+                            rI.push(p.clone().addScaledVector(n, 0.0005));
+                            rU.push(new THREE.Vector2(u, v));
+                        }
+                        outG.push(rO);
+                        inG.push(rI);
+                        uvG.push(rU);
+                    }
+                    return this.buildThickGridGeometry(outG, inG, uvG);
+                };
+
+                // A. Left & Right Hip Pockets
+                [1, -1].forEach((sideSign) => {
+                    const tPocket = 0.25;
+                    const angPocket = sideSign * 0.58;
+
+                    if (state.pocket === 'flap') {
+                        const flapGeom = buildSurfacePatch(tPocket, angPocket, 0.068, 0.42, sideSign, 0.0042);
+                        const flapMesh = new THREE.Mesh(flapGeom, materials.suitOuter);
+                        flapMesh.castShadow = true;
+                        group.add(flapMesh);
+                    } else if (state.pocket === 'jetted') {
+                        const weltUpper = buildSurfacePatch(tPocket + 0.015, angPocket, 0.014, 0.40, sideSign, 0.0032, 4, 12);
+                        const weltLower = buildSurfacePatch(tPocket - 0.002, angPocket, 0.014, 0.40, sideSign, 0.0032, 4, 12);
+                        group.add(new THREE.Mesh(weltUpper, materials.suitOuter));
+                        group.add(new THREE.Mesh(weltLower, materials.suitOuter));
+                    } else if (state.pocket === 'patch') {
+                        const patchGeom = buildSurfacePatch(tPocket - 0.04, angPocket, 0.16, 0.44, sideSign, 0.0044, 12, 14);
+                        const patchMesh = new THREE.Mesh(patchGeom, materials.suitOuter);
+                        patchMesh.castShadow = true;
+                        group.add(patchMesh);
+                    }
+                });
+
+                // B. Right Side Ticket Pocket
+                if (state.ticketPocket && state.pocket !== 'patch') {
+                    const ticketGeom = buildSurfacePatch(0.345, -0.54, 0.050, 0.28, -1, 0.0040, 6, 10);
+                    const ticketMesh = new THREE.Mesh(ticketGeom, materials.suitOuter);
+                    ticketMesh.castShadow = true;
+                    group.add(ticketMesh);
+                }
+
+                // C. Left Breast Barchetta Welt Pocket & Folded Silk Pocket Square
+                if (state.breastPocket) {
+                    const tBreast = 0.695;
+                    const angBreast = 0.52;
+                    const outG = [], inG = [], uvG = [];
+                    for (let r = 0; r <= 6; r++) {
+                        const v = r / 6;
+                        const rO = [], rI = [], rU = [];
+                        for (let c = 0; c <= 14; c++) {
+                            const u = c / 14;
+                            const boatSlant = (u - 0.5) * 0.022 + Math.sin(u * Math.PI) * 0.005;
+                            const t = tBreast + (v - 0.5) * 0.032 + boatSlant;
+                            const ang = angBreast + (u - 0.5) * 0.34;
+                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, 1);
+                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, 1);
+                            rO.push(p.clone().addScaledVector(n, 0.0038));
+                            rI.push(p.clone().addScaledVector(n, 0.0005));
+                            rU.push(new THREE.Vector2(u, v));
+                        }
+                        outG.push(rO);
+                        inG.push(rI);
+                        uvG.push(rU);
+                    }
+                    const breastMesh = new THREE.Mesh(this.buildThickGridGeometry(outG, inG, uvG), materials.suitOuter);
+                    breastMesh.castShadow = true;
+                    group.add(breastMesh);
+
+                    if (state.pocketSquare) {
+                        const pBase = AnatomicalSurfaceEngine.evalTorsoBodySection(tBreast + 0.016, angBreast, state, true, 1);
+                        const nBase = AnatomicalSurfaceEngine.evalTorsoNormal(tBreast + 0.016, angBreast, state, true, 1);
+
+                        for (let f = -1; f <= 1; f++) {
+                            const coneGeom = new THREE.ConeGeometry(0.015, 0.036, 12);
+                            coneGeom.scale(1.0, 1.0, 0.32);
+                            const foldMesh = new THREE.Mesh(coneGeom, materials.pocketSquare);
+                            foldMesh.position.copy(pBase).addScaledVector(nBase, 0.0024);
+                            foldMesh.position.x += f * 0.012;
+                            foldMesh.position.y += 0.014 + (1 - Math.abs(f)) * 0.005;
+                            foldMesh.rotation.z = -f * 0.22 - 0.08;
+                            foldMesh.rotation.x = 0.22;
+                            group.add(foldMesh);
+                        }
+                    }
+                }
+
+                return group;
+            }
+
+            /**
+             * 6. 3D BUTTON & STITCHED BUTTONHOLE FACTORY
+             */
+            static createSingle3DButton(radius, thickness, buttonMat, stitchMat) {
+                const btnGroup = new THREE.Group();
+
+                const diskGeom = new THREE.CylinderGeometry(radius, radius * 0.96, thickness, 28);
+                const diskMesh = new THREE.Mesh(diskGeom, buttonMat);
+                diskMesh.castShadow = true;
+                btnGroup.add(diskMesh);
+
+                const rimGeom = new THREE.TorusGeometry(radius * 0.84, thickness * 0.28, 12, 28);
+                rimGeom.rotateX(Math.PI / 2);
+                const rimMesh = new THREE.Mesh(rimGeom, buttonMat);
+                rimMesh.position.y = thickness * 0.45;
+                btnGroup.add(rimMesh);
+
+                const holeOffset = radius * 0.32;
+                const holeGeom = new THREE.CylinderGeometry(radius * 0.11, radius * 0.11, thickness * 1.15, 10);
+                const holeMat = new THREE.MeshBasicMaterial({ color: 0x090b10 });
+                [
+                    [-holeOffset, -holeOffset],
+                    [holeOffset, -holeOffset],
+                    [-holeOffset, holeOffset],
+                    [holeOffset, holeOffset]
+                ].forEach(([hx, hz]) => {
+                    const hMesh = new THREE.Mesh(holeGeom, holeMat);
+                    hMesh.position.set(hx, 0, hz);
+                    btnGroup.add(hMesh);
+                });
+
+                const threadGeom = new THREE.CylinderGeometry(radius * 0.06, radius * 0.06, holeOffset * 2.8, 8);
+                threadGeom.rotateZ(Math.PI / 2);
+                const t1 = new THREE.Mesh(threadGeom, stitchMat);
+                t1.rotation.y = Math.PI / 4;
+                t1.position.y = thickness * 0.56;
+                const t2 = t1.clone();
+                t2.rotation.y = -Math.PI / 4;
+                btnGroup.add(t1, t2);
+
+                return btnGroup;
+            }
+
+            static buildButtonsSystem(state, materials) {
+                const group = new THREE.Group();
+                const m = AnatomicalSurfaceEngine.getMetrics(state);
+
+                const btnRadius = (state.buttonDiameter / 100) * 0.5;
+                const btnThick = 0.0036;
+                const spacingT = (state.buttonSpacing / state.jacketLength);
+
+                const placeButtonOnTorso = (t, ang, sideSign, withButtonhole = true) => {
+                    const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, sideSign);
+                    const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, sideSign);
+
+                    const btn = this.createSingle3DButton(btnRadius, btnThick, materials.button, materials.stitch);
+                    btn.position.copy(p).addScaledVector(n, 0.0022);
+                    btn.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
+                    group.add(btn);
+
+                    if (withButtonhole) {
+                        const bhGeom = new THREE.BoxGeometry(btnRadius * 2.3, 0.0024, 0.0016);
+                        const bhMesh = new THREE.Mesh(bhGeom, materials.stitch);
+                        bhMesh.position.copy(p).addScaledVector(n, 0.0008);
+                        bhMesh.position.x += 0.003;
+                        bhMesh.lookAt(p.clone().add(n));
+                        group.add(bhMesh);
+                    }
+                };
+
+                if (m.isDB) {
+                    const colAng = Math.max(0.13, m.dbOverlapRad - 0.045);
+                    const lowerRowT = Math.max(0.22, m.breakT - spacingT * 1.05);
+                    const middleRowT = m.breakT - 0.015;
+
+                    // Row 1 (Bottom Row): Left & Right Columns
+                    placeButtonOnTorso(lowerRowT, -colAng, 1, true);
+                    placeButtonOnTorso(lowerRowT, colAng, 1, false);
+
+                    // Row 2 (Waist Fastening Row): Left & Right Columns
+                    placeButtonOnTorso(middleRowT, -colAng, 1, true);
+                    placeButtonOnTorso(middleRowT, colAng, 1, false);
+
+                    // Row 3 (Upper Chest Accent Row for 6x2 Double-Breasted)
+                    if (state.closure === 'db_6x2') {
+                        const upperRowT = Math.min(0.66, middleRowT + spacingT * 1.08);
+                        const upperColAng = colAng * 1.16;
+                        placeButtonOnTorso(upperRowT, -upperColAng, 1, false);
+                        placeButtonOnTorso(upperRowT, upperColAng, -1, false);
+                    }
+                } else {
+                    const btnAng = -0.008;
+                    const topBtnT = m.breakT - 0.015;
+
+                    if (state.closure === '1_btn') {
+                        placeButtonOnTorso(topBtnT, btnAng, 1, true);
+                    } else if (state.closure === '2_btn') {
+                        placeButtonOnTorso(topBtnT, btnAng, 1, true);
+                        placeButtonOnTorso(Math.max(0.22, topBtnT - spacingT), btnAng, 1, true);
+                    } else if (state.closure === '3_btn') {
+                        placeButtonOnTorso(topBtnT, btnAng, 1, true);
+                        placeButtonOnTorso(topBtnT - spacingT * 0.88, btnAng, 1, true);
+                        placeButtonOnTorso(Math.max(0.20, topBtnT - spacingT * 1.76), btnAng, 1, true);
+                    }
+                }
+
+                return group;
+            }
+
+            /**
+             * 7. HANDCRAFTED PICK-STITCHING (ĐƯỜNG CHỈ ĐỘT THỦ CÔNG — TẮT MẶC ĐỊNH)
+             *    Separated into its own independent group so toggling `showHandStitching`
+             *    updates ONLY this group without regenerating the mannequin or suit geometry.
+             */
+            static buildSeamsAndPickStitching(state, materials) {
+                const group = new THREE.Group();
+                const isInspection = state.viewMode === 'seams';
+                if (!state.showHandStitching && !isInspection) return group;
+
+                const m = AnatomicalSurfaceEngine.getMetrics(state);
+                const stitchPositions = [];
+                const addDashedSurfaceCurve = (pts, dashStride = 2) => {
+                    for (let i = 0; i < pts.length - 1; i += dashStride) {
+                        stitchPositions.push(pts[i].x, pts[i].y, pts[i].z);
+                        stitchPositions.push(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z);
+                    }
+                };
+
+                [1, -1].forEach((sideSign) => {
+                    // 1. Delicate Front Edge & Lapel Margin Pick-Stitching
+                    const edgePts = [];
+                    for (let i = 0; i <= 56; i++) {
+                        const t = (i / 56) * 0.90;
+                        const ang = AnatomicalSurfaceEngine.getFrontEdgeAngle(t, sideSign, state) + sideSign * 0.014;
+                        const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, sideSign);
+                        const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, sideSign);
+                        edgePts.push(p.addScaledVector(n, 0.0009));
+                    }
+                    addDashedSurfaceCurve(edgePts, 2);
+
+                    // 2. Subtle Front Waist Suppression Dart
+                    const dartPts = [];
+                    for (let i = 0; i <= 28; i++) {
+                        const t = 0.24 + (i / 28) * 0.44;
+                        const ang = sideSign * (0.46 + Math.sin((i / 28) * Math.PI) * 0.032);
+                        const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, sideSign);
+                        const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, sideSign);
+                        dartPts.push(p.addScaledVector(n, 0.0008));
+                    }
+                    addDashedSurfaceCurve(dartPts, 2);
+
+                    // 3. Armhole Scye Seam Line
+                    const scyePts = [];
+                    for (let i = 0; i <= 40; i++) {
+                        const phi = (i / 40) * Math.PI * 2;
+                        const { p, n } = AnatomicalSurfaceEngine.evalArmholeScyeData(phi, sideSign, state);
+                        scyePts.push(p.clone().addScaledVector(n, 0.0008));
+                    }
+                    addDashedSurfaceCurve(scyePts, 2);
+
+                    // 4. Top Shoulder Seam Line
+                    const shoulderPts = [];
+                    for (let i = 0; i <= 16; i++) {
+                        const t = m.tShoulder + (i / 16) * (1.0 - m.tShoulder);
+                        const ang = sideSign * Math.PI * 0.5;
+                        const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, 0);
+                        const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, 0);
+                        shoulderPts.push(p.addScaledVector(n, 0.0009));
+                    }
+                    addDashedSurfaceCurve(shoulderPts, 2);
+                });
+
+                // 5. Center Back Seam
+                const backSeamPts = [];
+                for (let i = 0; i <= 40; i++) {
+                    const t = i / 40;
+                    const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, Math.PI, state, true, 0);
+                    const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, Math.PI, state, true, 0);
+                    backSeamPts.push(p.addScaledVector(n, 0.0009));
+                }
+                addDashedSurfaceCurve(backSeamPts, 2);
+
+                const stitchGeom = new THREE.BufferGeometry();
+                stitchGeom.setAttribute('position', new THREE.Float32BufferAttribute(stitchPositions, 3));
+                const lineMat = new THREE.LineBasicMaterial({
+                    color: isInspection ? 0xf59e0b : new THREE.Color(state.stitchColor),
+                    transparent: true,
+                    opacity: isInspection ? 0.90 : 0.42
+                });
+                group.add(new THREE.LineSegments(stitchGeom, lineMat));
+
+                return group;
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 5. MAIN APPLICATION CONTROLLER (THREE.JS STUDIO, GSAP, UI & EXPORTERS)
+         * ============================================================================
+         */
+        class AtelierVestonApp {
+            constructor() {
+                this.state = this.getDefaultState();
+                this.userPresets = [];
+                this.rebuildTimer = null;
+                this.handStitchContainer = null;
+
+                this.initUI();
+                this.initThreeScene();
+                this.initMaterials();
+                this.rebuildSuitModel();
+                this.syncHandStitchUI();
+                this.animateLoop();
+            }
+
+            getDefaultState() {
+                const s = {
+                    closure: '2_btn',
+                    lapel: 'notch',
+                    pocket: 'flap',
+                    vent: 'double',
+                    fabric: 'wool',
+                    color: '#1c283d',
+                    liningColor: '#7c1d2e',
+                    stitchColor: '#3a3f4d',
+                    buttonMaterial: 'horn',
+                    cuffButtons: 4,
+                    satinLapel: false,
+                    breastPocket: true,
+                    pocketSquare: true,
+                    ticketPocket: true,
+                    showShirt: true,
+                    showTie: true,
+                    showWaistcoat: true,
+                    showHandStitching: false,
+                    openAmount: 0.0,
+                    viewMode: 'pbr',
+                    studioTheme: 'dark',
+                    texScale: 1.0
+                };
+                Object.values(PARAMETRIC_SCHEMA).forEach(group => {
+                    group.forEach(param => {
+                        s[param.key] = param.def;
+                    });
+                });
+                return s;
+            }
+
+            measureRingCm(t, isShell) {
+  const N = 144;
+  let sum = 0, prev = null;
+  for (let i = 0; i <= N; i++) {
+    const ang = -Math.PI + (i / N) * 2 * Math.PI;
+    const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, this.state, isShell, 0);
+    if (prev) sum += Math.hypot(p.x - prev.x, p.z - prev.z);
+    prev = p;
+  }
+  return sum * 100;
+}
+
+updateMeasureReadout() {
+  const box = document.getElementById('measure-readout');
+  if (!box) return;
+  const m = AnatomicalSurfaceEngine.getMetrics(this.state);
+  const rows = [
+    { name: 'Ngực trên',  u: 0.93,  target: null },
+    { name: 'Ngực (đầy nhất)', u: 0.665, target: this.state.chest },
+    { name: 'Ngực dưới / sườn', u: 0.60, target: null },
+    { name: 'Eo trên',    u: 0.545, target: null },
+    { name: 'Eo tự nhiên', u: 0.48, target: this.state.waist },
+    { name: 'Bụng dưới',  u: 0.33,  target: null },
+    { name: 'Hông trên',  u: 0.14,  target: this.state.hip }
+  ];
+  let html = `<div class="grid grid-cols-4 px-2.5 py-1 text-[10px] text-gray-500 border-b border-white/5">
+      <span>Vị trí</span><span class="text-right">Thân</span><span class="text-right">Áo</span><span class="text-right">Đặt</span></div>`;
+  rows.forEach(r => {
+    const t = r.u * m.tShoulder;
+    const body = this.measureRingCm(t, false);
+    const coat = this.measureRingCm(t, true);
+    html += `<div class="grid grid-cols-4 px-2.5 py-1 border-b border-white/5 last:border-0">
+      <span class="text-gray-300">${r.name}</span>
+      <span class="text-right font-mono-tech text-amber-300">${body.toFixed(1)}</span>
+      <span class="text-right font-mono-tech text-gray-300">${coat.toFixed(1)}</span>
+      <span class="text-right font-mono-tech text-gray-500">${r.target ?? '—'}</span></div>`;
+  });
+  box.innerHTML = html;
+}
+
+            initThreeScene() {
+                this.container = document.getElementById('canvas-container');
+                this.canvas = document.getElementById('viewport-canvas');
+
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x11151f);
+
+                const w = this.container.clientWidth || window.innerWidth;
+                const h = this.container.clientHeight || window.innerHeight;
+
+                this.camera = new THREE.PerspectiveCamera(34, w / h, 0.05, 30);
+                this.camera.position.set(0, 1.18, 1.82);
+
+                this.renderer = new THREE.WebGLRenderer({
+                    canvas: this.canvas,
+                    antialias: true,
+                    preserveDrawingBuffer: true
+                });
+                this.renderer.setSize(w, h);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.12;
+
+                this.controls = new THREE.OrbitControls(this.camera, this.canvas);
+                this.controls.target.set(0, 1.14, 0.02);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.06;
+                this.controls.minDistance = 0.42;
+                this.controls.maxDistance = 3.8;
+                this.controls.maxPolarAngle = Math.PI * 0.62;
+                this.controls.update();
+
+                // Professional 3-Point Sartorial Studio Lighting
+                this.hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x1e293b, 0.68);
+                this.scene.add(this.hemiLight);
+
+                this.keyLight = new THREE.DirectionalLight(0xfffbeb, 1.38);
+                this.keyLight.position.set(1.8, 2.7, 2.2);
+                this.keyLight.castShadow = true;
+                this.keyLight.shadow.mapSize.width = 2048;
+                this.keyLight.shadow.mapSize.height = 2048;
+                this.keyLight.shadow.camera.near = 0.5;
+                this.keyLight.shadow.camera.far = 7.0;
+                const d = 1.1;
+                this.keyLight.shadow.camera.left = -d;
+                this.keyLight.shadow.camera.right = d;
+                this.keyLight.shadow.camera.top = d;
+                this.keyLight.shadow.camera.bottom = -d;
+                this.keyLight.shadow.bias = -0.0005;
+                this.scene.add(this.keyLight);
+
+                this.fillLight = new THREE.DirectionalLight(0xcbd5e1, 0.62);
+                this.fillLight.position.set(-2.2, 1.6, 1.4);
+                this.scene.add(this.fillLight);
+
+                this.rimLight = new THREE.SpotLight(0xfde68a, 0.85);
+                this.rimLight.position.set(0, 2.5, -2.2);
+                this.scene.add(this.rimLight);
+
+                // Studio Floor Shadow Catcher
+                const floorGeom = new THREE.CircleGeometry(2.4, 64);
+                floorGeom.rotateX(-Math.PI / 2);
+                this.floorMat = new THREE.MeshStandardMaterial({
+                    color: 0x0d1017,
+                    roughness: 0.92,
+                    metalness: 0.05
+                });
+                this.floorMesh = new THREE.Mesh(floorGeom, this.floorMat);
+                this.floorMesh.receiveShadow = true;
+                this.scene.add(this.floorMesh);
+
+                this.suitRoot = new THREE.Group();
+                this.scene.add(this.suitRoot);
+
+                window.addEventListener('resize', () => this.onWindowResize());
+            }
+
+            onWindowResize() {
+                if (!this.container || !this.renderer) return;
+                const w = this.container.clientWidth;
+                const h = this.container.clientHeight;
+                this.camera.aspect = w / h;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(w, h);
+            }
+
+            initMaterials() {
+                const fabDef = FABRIC_LIBRARY.find(f => f.id === this.state.fabric) || FABRIC_LIBRARY[0];
+                const maps = ProceduralFabricTextureEngine.createFabricMaps(this.state.fabric, this.state.color, this.state.texScale);
+
+                this.materials = {
+                    suitOuter: new THREE.MeshStandardMaterial({
+                        map: maps.map,
+                        bumpMap: maps.bumpMap,
+                        bumpScale: fabDef.bump,
+                        roughness: fabDef.roughness,
+                        metalness: fabDef.metalness,
+                        side: THREE.DoubleSide
+                    }),
+                    satin: new THREE.MeshStandardMaterial({
+                        color: new THREE.Color(this.state.color).multiplyScalar(0.75),
+                        roughness: 0.26,
+                        metalness: 0.18,
+                        side: THREE.DoubleSide
+                    }),
+                    lining: new THREE.MeshStandardMaterial({
+                        color: new THREE.Color(this.state.liningColor),
+                        roughness: 0.35,
+                        metalness: 0.12,
+                        side: THREE.DoubleSide
+                    }),
+                    mannequin: new THREE.MeshStandardMaterial({
+                        color: 0xd6d1c7,
+                        roughness: 0.62,
+                        metalness: 0.04
+                    }),
+                    shirt: new THREE.MeshStandardMaterial({
+                        color: 0xf8fafc,
+                        roughness: 0.55,
+                        metalness: 0.02,
+                        side: THREE.DoubleSide
+                    }),
+                    tie: new THREE.MeshStandardMaterial({
+                        color: 0x1e293b,
+                        roughness: 0.38,
+                        metalness: 0.15,
+                        side: THREE.DoubleSide
+                    }),
+                    pocketSquare: new THREE.MeshStandardMaterial({
+                        color: 0xf1f5f9,
+                        roughness: 0.34,
+                        metalness: 0.10,
+                        side: THREE.DoubleSide
+                    }),
+                    button: new THREE.MeshStandardMaterial({
+                        color: 0x221b17,
+                        roughness: 0.32,
+                        metalness: 0.10
+                    }),
+                    stitch: new THREE.MeshBasicMaterial({
+                        color: new THREE.Color(this.state.stitchColor)
+                    }),
+                    brass: new THREE.MeshStandardMaterial({
+                        color: 0xd4af37,
+                        roughness: 0.25,
+                        metalness: 0.85
+                    }),
+                    walnut: new THREE.MeshStandardMaterial({
+                        color: 0x3b2416,
+                        roughness: 0.55,
+                        metalness: 0.06
+                    })
+                };
+            }
+
+            rebuildSuitModel() {
+                while (this.suitRoot.children.length > 0) {
+                    const child = this.suitRoot.children[0];
+                    this.suitRoot.remove(child);
+                    child.traverse(obj => {
+                        if (obj.geometry) obj.geometry.dispose();
+                    });
+                }
+
+                const isWire = this.state.viewMode === 'wireframe';
+                this.materials.suitOuter.wireframe = isWire;
+                this.materials.satin.wireframe = isWire;
+                this.materials.lining.wireframe = isWire;
+
+                // 1. Continuous Half-Body Mannequin, Shirt Collar, Tie & Waistcoat
+                if (typeof BespokeSuitGeometryBuilder.buildMannequinAndEnsemble === 'function') {
+                    this.suitRoot.add(BespokeSuitGeometryBuilder.buildMannequinAndEnsemble(this.state, this.materials));
+                }
+                // 2. Jacket Body Panels (with Scye Curve integration)
+                if (typeof BespokeSuitGeometryBuilder.buildJacketBody === 'function') {
+                    this.suitRoot.add(BespokeSuitGeometryBuilder.buildJacketBody(this.state, this.materials));
+                }
+                // 3. Unified Collar (Bâu áo) & Lapel (Ve áo)
+                if (typeof BespokeSuitGeometryBuilder.buildLapelsAndCollar === 'function') {
+                    this.suitRoot.add(BespokeSuitGeometryBuilder.buildLapelsAndCollar(this.state, this.materials));
+                }
+                // 4. Seamless Sleeves starting from the exact Armhole Scye Curve
+                if (typeof BespokeSuitGeometryBuilder.buildSleeves === 'function') {
+                    this.suitRoot.add(BespokeSuitGeometryBuilder.buildSleeves(this.state, this.materials));
+                }
+                // 5. Pockets & Silk Pocket Square
+                if (typeof BespokeSuitGeometryBuilder.buildPocketsSystem === 'function') {
+                    this.suitRoot.add(BespokeSuitGeometryBuilder.buildPocketsSystem(this.state, this.materials));
+                }
+                // 6. Single-Breasted (1B/2B/3B) & Double-Breasted (4x2/6x2) 3D Buttons
+                if (typeof BespokeSuitGeometryBuilder.buildButtonsSystem === 'function') {
+                    this.suitRoot.add(BespokeSuitGeometryBuilder.buildButtonsSystem(this.state, this.materials));
+                }
+
+                // 7. Independent Hand Pick-Stitching Group (Default OFF; updated independently when toggled)
+                this.handStitchContainer = new THREE.Group();
+                this.suitRoot.add(this.handStitchContainer);
+                this.updateHandStitchingOnly();
+
+                this.updateHUD();
+            }
+
+            updateHandStitchingOnly() {
+                if (!this.handStitchContainer) return;
+                while (this.handStitchContainer.children.length > 0) {
+                    const child = this.handStitchContainer.children[0];
+                    this.handStitchContainer.remove(child);
+                    child.traverse(obj => {
+                        if (obj.geometry) obj.geometry.dispose();
+                    });
+                }
+                this.handStitchContainer.add(
+                    BespokeSuitGeometryBuilder.buildSeamsAndPickStitching(this.state, this.materials)
+                );
+            }
+
+            syncHandStitchUI() {
+                const enabled = !!this.state.showHandStitching;
+                const chkRight = document.getElementById('toggle-pick-stitch');
+                const chkLeft = document.getElementById('toggle-hand-stitch-left');
+                if (chkRight) chkRight.checked = enabled;
+                if (chkLeft) chkLeft.checked = enabled;
+
+                ['hand-stitch-status-left', 'hand-stitch-status-right'].forEach(id => {
+                    const badge = document.getElementById(id);
+                    if (badge) {
+                        badge.textContent = enabled ? 'Bật' : 'Tắt';
+                        badge.className = enabled
+                            ? 'text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : 'text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-gray-800 text-gray-400';
+                    }
+                });
+            }
+
+            toggleHandStitching(checked) {
+                this.state.showHandStitching = !!checked;
+                this.syncHandStitchUI();
+                this.updateHandStitchingOnly();
+                this.showToast(this.state.showHandStitching ? 'Đã BẬT đường chỉ đột thủ công' : 'Đã TẮT đường chỉ đột thủ công');
+            }
+
+            scheduleRebuild() {
+                if (this.rebuildTimer) cancelAnimationFrame(this.rebuildTimer);
+                this.rebuildTimer = requestAnimationFrame(() => {
+                    this.rebuildSuitModel();
+                });
+            }
+
+            initUI() {
+                // Build Parametric Sliders
+                const buildSliderSection = (containerId, schemaList) => {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    schemaList.forEach(item => {
+                        const val = this.state[item.key];
+                        const wrap = document.createElement('div');
+                        wrap.className = 'bg-[#141822] p-2.5 rounded-lg border border-white/5 space-y-1.5';
+                        wrap.innerHTML = `
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-300 font-medium">${item.label}</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" id="num-${item.key}" min="${item.min}" max="${item.max}" step="${item.step}" value="${val}"
+                    class="w-14 bg-[#0b0e16] border border-white/15 rounded px-1.5 py-0.5 text-right font-mono-tech text-amber-300 text-xs focus:outline-none focus:border-amber-500" />
+                  <span class="text-[10px] text-gray-500 font-mono-tech">${item.unit}</span>
+                </div>
+              </div>
+              <input type="range" id="rng-${item.key}" min="${item.min}" max="${item.max}" step="${item.step}" value="${val}" />
+            `;
+                        container.appendChild(wrap);
+
+                        const rng = wrap.querySelector(`#rng-${item.key}`);
+                        const num = wrap.querySelector(`#num-${item.key}`);
+                        const onChange = (newVal) => {
+                            const clamped = THREE.MathUtils.clamp(parseFloat(newVal) || item.def, item.min, item.max);
+                            this.state[item.key] = clamped;
+                            rng.value = clamped;
+                            num.value = clamped;
+                            this.scheduleRebuild();
+                        };
+                        rng.addEventListener('input', e => onChange(e.target.value));
+                        num.addEventListener('change', e => onChange(e.target.value));
+                    });
+                };
+
+                buildSliderSection('sliders-body', PARAMETRIC_SCHEMA.body);
+                buildSliderSection('sliders-lapel', PARAMETRIC_SCHEMA.lapel);
+                buildSliderSection('sliders-sleeve', PARAMETRIC_SCHEMA.sleeve);
+                buildSliderSection('sliders-buttons', PARAMETRIC_SCHEMA.buttons);
+
+                // Build 12 PBR Fabric Cards
+                const fabGrid = document.getElementById('fabric-grid');
+                if (fabGrid) {
+                    fabGrid.innerHTML = '';
+                    FABRIC_LIBRARY.forEach(fab => {
+                        const btn = document.createElement('button');
+                        btn.setAttribute('data-fabric', fab.id);
+                        btn.className = `opt-btn rounded-lg p-2.5 text-left ${fab.id === this.state.fabric ? 'active' : ''}`;
+                        btn.onclick = () => this.selectFabric(fab.id);
+                        btn.innerHTML = `
+              <div class="text-xs font-semibold truncate">${fab.name}</div>
+              <div class="text-[10px] text-gray-400 truncate">${fab.sub}</div>
+            `;
+                        fabGrid.appendChild(btn);
+                    });
+                }
+
+                // Build Color Swatches
+                const swatchGrid = document.getElementById('color-swatches');
+                if (swatchGrid) {
+                    swatchGrid.innerHTML = '';
+                    COLOR_SWATCHES.forEach(sw => {
+                        const btn = document.createElement('button');
+                        btn.title = sw.name;
+                        btn.className = 'w-7 h-7 rounded-lg border border-white/20 hover:scale-110 transition shadow-md';
+                        btn.style.backgroundColor = sw.hex;
+                        btn.onclick = () => this.setFabricColor(sw.hex);
+                        swatchGrid.appendChild(btn);
+                    });
+                }
+
+                // Build Curated Presets
+                const presetContainer = document.getElementById('curated-presets-list');
+                if (presetContainer) {
+                    presetContainer.innerHTML = '';
+                    CURATED_PRESETS.forEach((p, idx) => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-[#141822] hover:bg-[#1a202e] p-3 rounded-xl border border-white/10 cursor-pointer transition flex items-center justify-between';
+                        card.onclick = () => this.applyConfigObject(p.config, `Đã áp dụng mẫu: ${p.name}`);
+                        card.innerHTML = `
+              <div>
+                <div class="text-xs font-semibold text-amber-200">${p.name}</div>
+                <div class="text-[11px] text-gray-400">${p.desc}</div>
+              </div>
+              <span class="text-[10px] font-mono-tech px-2 py-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">Chọn</span>
+            `;
+                        presetContainer.appendChild(card);
+                    });
+                }
+            }
+
+            setStyleOption(category, value) {
+                this.state[category] = value;
+
+                // Automatically adjust lapel & V-zone proportions when switching to Double-Breasted 4x2 or 6x2
+                if (category === 'closure') {
+                    const isDB = value.startsWith('db_');
+                    const badge = document.getElementById('badge-breast-type');
+                    if (badge) {
+                        badge.textContent = isDB ? 'Double-Breasted' : 'Single-Breasted';
+                        badge.className = isDB
+                            ? 'text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                            : 'text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-white/5 text-gray-300';
+                    }
+                    if (isDB && this.state.lapel === 'notch') {
+                        this.state.lapel = 'peak';
+                        document.querySelectorAll('[data-lapel]').forEach(b => {
+                            b.classList.toggle('active', b.getAttribute('data-lapel') === 'peak');
+                        });
+                    }
+                }
+
+                document.querySelectorAll(`[data-${category}]`).forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute(`data-${category}`) === value);
+                });
+
+                gsap.fromTo(this.suitRoot.scale, { x: 0.985, y: 0.992, z: 0.985 }, { x: 1, y: 1, z: 1, duration: 0.35, ease: 'power2.out' });
+                this.scheduleRebuild();
+            }
+
+            setBooleanOption(key, checked) {
+                this.state[key] = !!checked;
+                this.scheduleRebuild();
+            }
+
+            setCuffButtons(count) {
+                this.state.cuffButtons = count;
+                this.scheduleRebuild();
+            }
+
+            setOpenAmount(val) {
+                this.state.openAmount = THREE.MathUtils.clamp(val, 0, 1);
+                const lbl = document.getElementById('lbl-open-amount');
+                const rng = document.getElementById('rng-open-amount');
+                if (lbl) lbl.textContent = `${Math.round(this.state.openAmount * 100)}%`;
+                if (rng) rng.value = this.state.openAmount;
+                this.scheduleRebuild();
+            }
+
+            toggleJacketOpen() {
+                const target = this.state.openAmount > 0.4 ? 0.0 : 0.85;
+                gsap.to(this.state, {
+                    openAmount: target,
+                    duration: 0.65,
+                    ease: 'power2.inOut',
+                    onUpdate: () => {
+                        this.setOpenAmount(this.state.openAmount);
+                    }
+                });
+            }
+
+            selectFabric(fabricId) {
+                this.state.fabric = fabricId;
+                document.querySelectorAll('[data-fabric]').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-fabric') === fabricId);
+                });
+
+                const fabDef = FABRIC_LIBRARY.find(f => f.id === fabricId) || FABRIC_LIBRARY[0];
+                const maps = ProceduralFabricTextureEngine.createFabricMaps(this.state.fabric, this.state.color, this.state.texScale);
+
+                if (this.materials.suitOuter.map) this.materials.suitOuter.map.dispose();
+                if (this.materials.suitOuter.bumpMap) this.materials.suitOuter.bumpMap.dispose();
+
+                this.materials.suitOuter.map = maps.map;
+                this.materials.suitOuter.bumpMap = maps.bumpMap;
+                this.materials.suitOuter.bumpScale = fabDef.bump;
+                this.materials.suitOuter.roughness = fabDef.roughness;
+                this.materials.suitOuter.metalness = fabDef.metalness;
+                this.materials.suitOuter.needsUpdate = true;
+
+                const rngRough = document.getElementById('rng-roughness');
+                const lblRough = document.getElementById('lbl-roughness');
+                if (rngRough) rngRough.value = fabDef.roughness;
+                if (lblRough) lblRough.textContent = fabDef.roughness.toFixed(2);
+
+                this.updateHUD();
+            }
+
+            setFabricColor(hex) {
+                this.state.color = hex;
+                const picker = document.getElementById('fabric-color-picker');
+                if (picker) picker.value = hex;
+
+                const maps = ProceduralFabricTextureEngine.createFabricMaps(this.state.fabric, this.state.color, this.state.texScale);
+                if (this.materials.suitOuter.map) this.materials.suitOuter.map.dispose();
+                this.materials.suitOuter.map = maps.map;
+                this.materials.suitOuter.needsUpdate = true;
+
+                this.materials.satin.color.set(hex).multiplyScalar(0.75);
+            }
+
+            setTextureScale(scale) {
+                this.state.texScale = scale;
+                const lbl = document.getElementById('lbl-tex-scale');
+                if (lbl) lbl.textContent = `${scale.toFixed(1)}x`;
+                this.selectFabric(this.state.fabric);
+            }
+
+            setCustomRoughness(val) {
+                this.materials.suitOuter.roughness = val;
+                const lbl = document.getElementById('lbl-roughness');
+                if (lbl) lbl.textContent = val.toFixed(2);
+            }
+
+            setButtonMaterial(type) {
+                this.state.buttonMaterial = type;
+                document.querySelectorAll('[data-btnmat]').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-btnmat') === type);
+                });
+
+                if (type === 'horn') {
+                    this.materials.button.color.set(0x221b17);
+                    this.materials.button.roughness = 0.34;
+                    this.materials.button.metalness = 0.08;
+                } else if (type === 'pearl') {
+                    this.materials.button.color.set(0xdbe4ee);
+                    this.materials.button.roughness = 0.18;
+                    this.materials.button.metalness = 0.35;
+                } else if (type === 'brass') {
+                    this.materials.button.color.set(0xd4af37);
+                    this.materials.button.roughness = 0.22;
+                    this.materials.button.metalness = 0.88;
+                } else if (type === 'covered') {
+                    this.materials.button.color.set(this.state.color);
+                    this.materials.button.roughness = 0.30;
+                    this.materials.button.metalness = 0.15;
+                }
+            }
+
+            setLiningColor(hex) {
+                this.state.liningColor = hex;
+                this.materials.lining.color.set(hex);
+            }
+
+            setStitchColor(hex) {
+                this.state.stitchColor = hex;
+                this.materials.stitch.color.set(hex);
+                this.updateHandStitchingOnly();
+            }
+
+            applyQuickFit(mode) {
+                if (mode === 'slim') {
+                    this.state.fitEase = -0.5;
+                    this.state.waist = Math.max(74, this.state.chest - 16);
+                } else if (mode === 'regular') {
+                    this.state.fitEase = 0.8;
+                    this.state.waist = Math.max(76, this.state.chest - 14);
+                } else {
+                    this.state.fitEase = 2.2;
+                    this.state.waist = Math.max(78, this.state.chest - 10);
+                }
+                ['fitEase', 'waist'].forEach(k => {
+                    const rng = document.getElementById(`rng-${k}`);
+                    const num = document.getElementById(`num-${k}`);
+                    if (rng) rng.value = this.state[k];
+                    if (num) num.value = this.state[k];
+                });
+                this.scheduleRebuild();
+                this.showToast(`Đã chọn phom áo: ${mode.toUpperCase()} FIT`);
+            }
+
+            switchRightTab(tabId) {
+                ['body', 'details', 'fabric', 'presets'].forEach(id => {
+                    const btn = document.getElementById(`tab-btn-${id}`);
+                    const panel = document.getElementById(`tab-panel-${id}`);
+                    if (btn) btn.classList.toggle('active', id === tabId);
+                    if (panel) panel.classList.toggle('hidden', id !== tabId);
+                });
+            }
+
+            setCameraView(preset) {
+                const views = {
+                    front: { pos: [0, 1.18, 1.82], target: [0, 1.14, 0.02] },
+                    angle45L: { pos: [-1.18, 1.22, 1.38], target: [0, 1.14, 0.02] },
+                    angle45R: { pos: [1.18, 1.22, 1.38], target: [0, 1.14, 0.02] },
+                    lapelZoom: { pos: [0, 1.34, 0.86], target: [0, 1.29, 0.06] },
+                    side: { pos: [1.68, 1.20, 0.08], target: [0, 1.16, 0.02] },
+                    back: { pos: [0, 1.20, -1.82], target: [0, 1.14, 0.0] }
+                };
+                const v = views[preset] || views.front;
+                gsap.to(this.camera.position, {
+                    x: v.pos[0], y: v.pos[1], z: v.pos[2],
+                    duration: 0.85, ease: 'power3.out'
+                });
+                gsap.to(this.controls.target, {
+                    x: v.target[0], y: v.target[1], z: v.target[2],
+                    duration: 0.85, ease: 'power3.out'
+                });
+            }
+
+            setStudioTheme(theme) {
+                this.state.studioTheme = theme;
+                const themes = {
+                    dark: { bg: 0x11151f, floor: 0x0d1017 },
+                    neutral: { bg: 0x262b36, floor: 0x1e222b },
+                    light: { bg: 0xdbe0e8, floor: 0xc4cbd6 }
+                };
+                const t = themes[theme] || themes.dark;
+                this.scene.background.setHex(t.bg);
+                this.floorMat.color.setHex(t.floor);
+
+                ['dark', 'neutral', 'light'].forEach(k => {
+                    const btn = document.getElementById(`env-${k}`);
+                    if (btn) {
+                        btn.className = k === theme
+                            ? 'px-2 py-1 rounded bg-amber-500/20 text-amber-300 font-medium'
+                            : 'px-2 py-1 rounded text-gray-400 hover:text-white';
+                    }
+                });
+            }
+
+            setViewMode(mode) {
+                this.state.viewMode = mode;
+                ['pbr', 'seams', 'wireframe'].forEach(m => {
+                    const btn = document.getElementById(`vmode-${m}`);
+                    if (btn) {
+                        btn.className = m === mode
+                            ? 'px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            : 'px-2.5 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white';
+                    }
+                });
+                this.rebuildSuitModel();
+            }
+
+            updateHUD() {
+                let totalTris = 0;
+                this.suitRoot.traverse(obj => {
+                    if (obj.isMesh && obj.geometry) {
+                        const idx = obj.geometry.index;
+                        totalTris += idx ? (idx.count / 3) : (obj.geometry.attributes.position.count / 3);
+                    }
+                });
+
+                const closureNames = {
+                    '1_btn': '1 Cúc SB',
+                    '2_btn': '2 Cúc SB',
+                    '3_btn': '3 Cúc SB',
+                    'db_4x2': '4 Cúc Chéo (4×2 DB)',
+                    'db_6x2': '6 Cúc Chéo (6×2 DB)'
+                };
+                const lapelNames = {
+                    'notch': 'Ve Chữ K',
+                    'peak': 'Ve Nhọn',
+                    'shawl': 'Ve Sam'
+                };
+                const fabObj = FABRIC_LIBRARY.find(f => f.id === this.state.fabric) || FABRIC_LIBRARY[0];
+
+                const sumEl = document.getElementById('hud-style-summary');
+                const polyEl = document.getElementById('hud-poly-count');
+                const fitEl = document.getElementById('hud-fit-badge');
+
+                if (sumEl) sumEl.textContent = `${closureNames[this.state.closure]} • ${lapelNames[this.state.lapel]} • ${fabObj.name}`;
+                if (polyEl) polyEl.textContent = `Mesh: ${Math.round(totalTris).toLocaleString()} tris`;
+                if (fitEl) fitEl.textContent = `Ngực: ${this.state.chest}cm | Eo: ${this.state.waist}cm | Vai: ${this.state.shoulderWidth}cm`;
+                this.updateMeasureReadout();
+            }
+
+            applyConfigObject(cfg, toastMsg = 'Đã tải cấu hình thiết kế!') {
+                if (cfg.closure === '4_btn') cfg.closure = 'db_4x2';
+                const resolvedHandStitch = (typeof cfg.showHandStitching === 'boolean')
+                    ? cfg.showHandStitching
+                    : false;
+                Object.assign(this.state, cfg);
+                this.state.showHandStitching = resolvedHandStitch;
+
+                ['closure', 'lapel', 'pocket', 'vent'].forEach(cat => {
+                    document.querySelectorAll(`[data-${cat}]`).forEach(btn => {
+                        btn.classList.toggle('active', btn.getAttribute(`data-${cat}`) === this.state[cat]);
+                    });
+                });
+
+                const isDB = this.state.closure.startsWith('db_');
+                const badge = document.getElementById('badge-breast-type');
+                if (badge) {
+                    badge.textContent = isDB ? 'Double-Breasted' : 'Single-Breasted';
+                }
+
+                document.getElementById('toggle-satin-lapel').checked = !!this.state.satinLapel;
+                document.getElementById('toggle-breast-pocket').checked = !!this.state.breastPocket;
+                document.getElementById('toggle-pocket-square').checked = !!this.state.pocketSquare;
+                document.getElementById('toggle-ticket-pocket').checked = !!this.state.ticketPocket;
+                document.getElementById('toggle-shirt').checked = !!this.state.showShirt;
+                document.getElementById('toggle-tie').checked = !!this.state.showTie;
+                document.getElementById('toggle-trousers').checked = !!this.state.showWaistcoat;
+                this.syncHandStitchUI();
+
+                Object.values(PARAMETRIC_SCHEMA).flat().forEach(item => {
+                    const rng = document.getElementById(`rng-${item.key}`);
+                    const num = document.getElementById(`num-${item.key}`);
+                    if (rng) rng.value = this.state[item.key];
+                    if (num) num.value = this.state[item.key];
+                });
+
+                this.selectFabric(this.state.fabric);
+                this.setFabricColor(this.state.color);
+                this.setLiningColor(this.state.liningColor);
+                this.setButtonMaterial(this.state.buttonMaterial);
+                this.rebuildSuitModel();
+                this.showToast(toastMsg);
+            }
+
+            resetToDefault() {
+                this.applyConfigObject(this.getDefaultState(), 'Đã khôi phục cấu hình mặc định!');
+            }
+
+            saveUserPreset() {
+                const inp = document.getElementById('input-preset-name');
+                const name = (inp && inp.value.trim()) ? inp.value.trim() : `Mẫu Thiết Kế #${this.userPresets.length + 1}`;
+                this.userPresets.push({
+                    name,
+                    config: JSON.parse(JSON.stringify(this.state))
+                });
+                if (inp) inp.value = '';
+                this.renderUserPresets();
+                this.showToast(`Đã lưu thiết kế: ${name}`);
+            }
+
+            renderUserPresets() {
+                const list = document.getElementById('user-presets-list');
+                if (!list) return;
+                list.innerHTML = '';
+                this.userPresets.forEach((p) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between bg-[#141822] px-3 py-2 rounded-lg border border-amber-500/25 text-xs';
+                    item.innerHTML = `
+            <span class="font-medium text-amber-200 truncate">${p.name}</span>
+            <button class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Tải lại</button>
+          `;
+                    item.querySelector('button').onclick = () => this.applyConfigObject(p.config, `Đã tải: ${p.name}`);
+                    list.appendChild(item);
+                });
+            }
+
+            exportJSON() {
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.state, null, 2));
+                const a = document.createElement('a');
+                a.href = dataStr;
+                a.download = `atelier-veston-${this.state.closure}-${Date.now()}.json`;
+                a.click();
+                this.showToast('Đã xuất cấu hình .JSON thành công!');
+            }
+
+            importJSON(event) {
+                const file = event.target.files && event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        this.applyConfigObject(parsed, 'Đã nhập cấu hình từ file .JSON!');
+                    } catch (err) {
+                        this.showToast('File JSON không hợp lệ!');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            captureScreenshot() {
+                this.renderer.render(this.scene, this.camera);
+                const url = this.canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `atelier-veston-3d-${Date.now()}.png`;
+                a.click();
+                this.showToast('Đã chụp ảnh sản phẩm .PNG độ phân giải cao!');
+            }
+
+            exportGLB() {
+                if (!THREE.GLTFExporter) {
+                    this.showToast('Trình xuất GLTFExporter chưa sẵn sàng.');
+                    return;
+                }
+                this.showToast('Đang đóng gói mô hình 3D sang .GLB...');
+                const exporter = new THREE.GLTFExporter();
+                exporter.parse(
+                    this.suitRoot,
+                    (result) => {
+                        const blob = new Blob([result], { type: 'application/octet-stream' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `atelier-veston-${this.state.closure}.glb`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        this.showToast('Đã xuất file 3D .GLB thành công!');
+                    },
+                    { binary: true }
+                );
+            }
+
+            showToast(message) {
+                const box = document.getElementById('toast-box');
+                if (!box) return;
+                box.textContent = message;
+                box.classList.remove('opacity-0', 'translate-y-2');
+                box.classList.add('opacity-100', 'translate-y-0');
+                clearTimeout(this.toastTimeout);
+                this.toastTimeout = setTimeout(() => {
+                    box.classList.add('opacity-0', 'translate-y-2');
+                    box.classList.remove('opacity-100', 'translate-y-0');
+                }, 2400);
+            }
+
+            animateLoop() {
+                requestAnimationFrame(() => this.animateLoop());
+                if (this.controls) this.controls.update();
+                if (this.renderer && this.scene && this.camera) {
+                    this.renderer.render(this.scene, this.camera);
+                }
+            }
+        }
+
+        // Start Application on Window Load
+        let app;
+        window.onload = function () {
+            app = new AtelierVestonApp();
+        };
+    </script>
+</body>
+
+</html>
