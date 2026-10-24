@@ -1,167 +1,1317 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Atelier Veston 3D — Thiết kế & may đo áo vest nam</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<style>
-:root{--bg:#fff;--card:#f2f2f7;--panel:rgba(255,255,255,.86);--track:rgba(120,120,128,.22);--fill:rgba(120,120,128,.12);--sep:rgba(60,60,67,.16);--t1:#1d1d1f;--t2:#6e6e73;--t3:#8e8e93;--ac:#0071e3;--act:rgba(0,113,227,.09);--segon:#fff;--glass:rgba(255,255,255,.74);color-scheme:light dark}
-@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--panel:rgba(22,22,24,.86);--fill:rgba(120,120,128,.24);--sep:rgba(84,84,88,.55);--t1:#f5f5f7;--t2:#a1a1a6;--ac:#0a84ff;--act:rgba(10,132,255,.16);--segon:#636366;--track:rgba(120,120,128,.36);--glass:rgba(44,44,46,.74)}}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%}
-body{height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--t1);font:14px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-font-smoothing:antialiased}
-input,select{user-select:text}
-button,label{font:inherit;color:inherit;cursor:pointer}
-button{border:0;background:none;padding:0}
-.hidden{display:none!important}.opacity-0{opacity:0}.opacity-100{opacity:1}.translate-y-2{transform:translateY(8px)}.translate-y-0{transform:none}
-.font-mono-tech{font-variant-numeric:tabular-nums}
-::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:rgba(128,128,128,.35);border-radius:8px;border:2px solid transparent;background-clip:content-box}
-/* header */
-.top{flex:none;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 16px 0;display:flex;align-items:center;justify-content:space-between;background:var(--panel);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep);z-index:5}
-.brand{font-size:17px;font-weight:600;letter-spacing:-.01em;white-space:nowrap}.brand i{font-style:normal;color:var(--t3);font-weight:500;margin-left:6px}
-.acts{display:flex;gap:8px;align-items:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border-radius:9px;background:var(--fill);font-size:13px;font-weight:500;white-space:nowrap;transition:opacity .15s}
-.btn:active{opacity:.6}.btn.pri{background:var(--ac);color:#fff}.btn.sm{height:26px;padding:0 10px;font-size:12px}
-.seg{display:inline-flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px}.seg.full{display:flex}.seg.full .seg-btn{flex:1}
-.seg-btn,.tab-btn{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;white-space:nowrap;transition:background .15s}
-.seg-btn.on,.tab-btn.active{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.14)}
-.tag{font-size:12px;color:var(--t3);font-weight:400;text-transform:none;letter-spacing:0}.tag.on{color:var(--ac)}
-/* layout */
-main{flex:1;min-height:0;display:flex}
-.panel{flex:none;width:300px;overflow-y:auto;background:var(--bg);padding:16px;display:flex;flex-direction:column;gap:24px}
-.left{border-right:.5px solid var(--sep)}
-.right{width:348px;padding:0;gap:0;border-left:.5px solid var(--sep);overflow:hidden}
-.rtabs{display:flex;margin:12px 16px;flex:none}.rtabs .tab-btn{flex:1}
-.pane{flex:1;overflow-y:auto;padding:4px 16px 28px;display:flex;flex-direction:column;gap:24px}
-.stage{position:relative;flex:1;min-width:0;overflow:hidden}
-#canvas-container{position:absolute;inset:0}#viewport-canvas{display:block;width:100%;height:100%;outline:0}
-/* sections */
-.sec{display:flex;flex-direction:column;gap:8px}
-.h{display:flex;justify-content:space-between;align-items:center;min-height:26px;padding:0 4px;font-size:13px;font-weight:600;color:var(--t2)}
-.sub{font-size:12px;color:var(--t3);padding:0 4px}
-.note{margin:0;padding:0 4px;font-size:11px;color:var(--t3)}
-.grp,.sl-list{background:var(--card);border-radius:12px;overflow:hidden}
-.row{display:flex;align-items:center;gap:8px;padding:10px 14px;min-height:44px}.row+.row{border-top:.5px solid var(--sep)}
-.row>span:first-child{flex:1;min-width:0}.val{color:var(--t2);font-variant-numeric:tabular-nums}
-.tiles{display:grid;gap:8px}.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}
-.opt-btn{min-width:0;padding:10px 8px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 .5px var(--sep);text-align:center;transition:box-shadow .15s,background .15s}
-.opt-btn.l,#fabric-grid .opt-btn{text-align:left;padding:10px 12px}
-.opt-btn>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.opt-btn>div:first-child{font-size:13px;font-weight:600}.opt-btn>div+div{font-size:11px;color:var(--t3);margin-top:1px}
-.opt-btn.active{background:var(--act);box-shadow:inset 0 0 0 2px var(--ac)}
-.tiles>.btn{height:40px;border-radius:12px;background:var(--card)}
-/* controls */
-.sw{-webkit-appearance:none;appearance:none;flex:none;width:44px;height:26px;border-radius:13px;background:var(--track);position:relative;cursor:pointer;transition:background .2s;margin:0}
-.sw::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
-.sw:checked{background:#34c759}.sw:checked::after{transform:translateX(18px)}
-input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:4px;border-radius:2px;background:var(--track);outline:0;margin:12px 0}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
-input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
-input[type=color]{-webkit-appearance:none;appearance:none;width:30px;height:30px;padding:0;border:0;background:none;cursor:pointer}
-input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border:.5px solid var(--sep);border-radius:50%}input[type=color]::-moz-color-swatch{border:.5px solid var(--sep);border-radius:50%}
-.sel{background:var(--bg);border:0;border-radius:8px;padding:4px 8px;color:var(--ac);font:inherit;font-size:12px;font-weight:500}
-.inp{flex:1;min-width:0;height:36px;border:0;border-radius:10px;background:var(--card);padding:0 12px;font:inherit;color:var(--t1);box-shadow:inset 0 0 0 .5px var(--sep);outline:0}.inp:focus{box-shadow:inset 0 0 0 2px var(--ac)}
-.saverow{display:flex;gap:8px}.saverow .btn{height:36px}
-/* generated by JS */
-.sl-list>div{padding:12px 14px}.sl-list>div+div{border-top:.5px solid var(--sep)}
-.sl-list>div>div:first-child{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
-.sl-list>div>div>div{display:flex;align-items:center;gap:4px;flex:none}
-.sl-list input[type=range]{margin:14px 0 4px}
-.sl-list input[type=number]{-moz-appearance:textfield;width:64px;height:28px;border:0;border-radius:8px;background:var(--bg);color:var(--ac);text-align:right;padding:0 8px;font:inherit;font-weight:500;font-variant-numeric:tabular-nums;outline:0}
-.sl-list input::-webkit-inner-spin-button{display:none}
-.sl-list input[type=number]+span{color:var(--t3);font-size:11px;min-width:16px}
-#color-swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
-#color-swatches button{aspect-ratio:1;border-radius:50%;border:.5px solid var(--sep)!important}
-#curated-presets-list,#user-presets-list{display:grid;gap:8px}
-#curated-presets-list>div,#user-presets-list>div{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:12px 14px;cursor:pointer}
-#curated-presets-list>div>div>div:first-child{font-size:14px;font-weight:600}
-#curated-presets-list>div>div>div+div{font-size:12px;color:var(--t2);margin-top:2px}
-#curated-presets-list>div>span{flex:none;font-size:12px;font-weight:500;color:var(--ac);background:var(--act);padding:4px 12px;border-radius:999px}
-#user-presets-list>div{cursor:default;font-size:13px;font-weight:500}#user-presets-list button{color:var(--ac);font-size:13px;font-weight:500}
-#measure-readout>div{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;padding:9px 14px;font-size:13px;border-top:.5px solid var(--sep)}
-#measure-readout>div:first-child{border:0;font-size:11px;padding-bottom:4px}
-#measure-readout>div:first-child span{color:var(--t3)!important;font-weight:400!important}
-#measure-readout .text-right{text-align:right}
-#measure-readout>div span:nth-child(1){color:var(--t1)}#measure-readout>div span:nth-child(2){color:var(--ac);font-weight:600}#measure-readout>div span:nth-child(3){color:var(--t1)}#measure-readout>div span:nth-child(4){color:var(--t3)}
- 
-/* nút do JS tự gán class: nhận diện trạng thái bật bằng class gốc */
-#env-dark,#env-neutral,#env-light,#vmode-pbr,#vmode-seams,#vmode-wireframe{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;white-space:nowrap;background:none;color:var(--t1)}
-#env-dark[class*="bg-amber"],#env-neutral[class*="bg-amber"],#env-light[class*="bg-amber"]{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.14)}
-#vmode-pbr[class*="bg-amber"],#vmode-seams[class*="bg-amber"],#vmode-wireframe[class*="bg-amber"]{background:var(--fill)}
-#badge-breast-type,[id^=hand-stitch-status]{font-size:12px;color:var(--t3);background:none;border:0;padding:0;font-weight:400}
-#badge-breast-type[class*="bg-amber"],[id^=hand-stitch-status][class*="bg-amber"]{color:var(--ac)}
-/* stage overlays */
-.glass{position:absolute;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border:.5px solid var(--sep);box-shadow:0 2px 14px rgba(0,0,0,.08)}
-.glass .seg-btn.on{background:var(--fill);box-shadow:none}
-.hud{top:12px;left:12px;padding:8px 12px;border-radius:12px;pointer-events:none}
-#hud-style-summary{font-weight:600;font-size:13px}
-.hud>div+div{margin-top:2px;font-size:11px;color:var(--t2);font-variant-numeric:tabular-nums}.hud>div+div span+span{margin-left:10px}
-.vmodes{top:12px;right:12px;display:flex;gap:2px;padding:3px;border-radius:11px}
-.cams{bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:2px;padding:4px;border-radius:999px;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}
-.cams::-webkit-scrollbar{display:none}.cams .seg-btn{border-radius:999px}
-.hint{position:absolute;left:14px;bottom:20px;font-size:11px;color:var(--t3);pointer-events:none}
-#toast-box{position:absolute;left:0;right:0;bottom:66px;margin:auto;width:max-content;max-width:90%;padding:9px 16px;border-radius:999px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid var(--sep);font-size:13px;font-weight:500;pointer-events:none;transition:opacity .25s,transform .25s}
-.mtabs,.grab{display:none}
-.ibtn{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--t3);transition:color .15s,background .15s}.ibtn:hover{background:var(--fill)}.ibtn.on{color:var(--ac)}
-@media(min-width:961px){body.lc .left{display:none}body.rc .right{display:none}}
-@media(max-width:1180px){.panel{width:276px}.right{width:324px}.hint{display:none}}
-@media(max-width:960px){
- main{flex-direction:column}
- .stage{order:-2;flex:none;height:42dvh}
- body.mc .left,body.mc .right{display:none}body.mc .stage{height:auto;flex:1}
- .grab{display:flex;order:-1;flex:none;justify-content:center;align-items:center;height:22px;background:var(--bg);border-top:.5px solid var(--sep)}.grab span{width:36px;height:4px;border-radius:2px;background:rgba(120,120,128,.4)}
- .panel,.right{width:100%;flex:1;min-height:0;border:0}
- .right>.rtabs{display:none}
- body:not([data-m=style]) .left,body[data-m=style] .right{display:none}
- .envseg,.hud,.hide-m{display:none}
- .vmodes{right:auto;left:50%;transform:translateX(-50%)}
- .top{padding-left:12px;padding-right:12px}.acts{gap:6px}.btn{padding:0 11px}
- .mtabs{display:grid;grid-template-columns:repeat(5,1fr);flex:none;background:var(--panel);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom)}
- .mtabs button{padding:7px 0 6px;font-size:10px;font-weight:500;color:var(--t3)}.mtabs button.on{color:var(--ac)}
- input[type=number],.inp,.sel{font-size:16px!important}
- .glass .seg-btn,.vmodes button{padding:4px 9px!important;font-size:11px!important}.vmodes{top:8px;padding:2px}.cams{bottom:8px;padding:2px}#toast-box{bottom:44px}
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Atelier Veston 3D — Thiết kế & may đo áo vest nam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --bg: #fff;
+            --card: #f2f2f7;
+            --panel: rgba(255, 255, 255, .86);
+            --track: rgba(120, 120, 128, .22);
+            --fill: rgba(120, 120, 128, .12);
+            --sep: rgba(60, 60, 67, .16);
+            --t1: #1d1d1f;
+            --t2: #6e6e73;
+            --t3: #8e8e93;
+            --ac: #0071e3;
+            --act: rgba(0, 113, 227, .09);
+            --segon: #fff;
+            --glass: rgba(255, 255, 255, .74);
+            color-scheme: light dark
+        }
+
+        @media(prefers-color-scheme:dark) {
+            :root {
+                --bg: #000;
+                --card: #1c1c1e;
+                --panel: rgba(22, 22, 24, .86);
+                --fill: rgba(120, 120, 128, .24);
+                --sep: rgba(84, 84, 88, .55);
+                --t1: #f5f5f7;
+                --t2: #a1a1a6;
+                --ac: #0a84ff;
+                --act: rgba(10, 132, 255, .16);
+                --segon: #636366;
+                --track: rgba(120, 120, 128, .36);
+                --glass: rgba(44, 44, 46, .74)
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%
+        }
+
+        body {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            color: var(--t1);
+            font: 14px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-font-smoothing: antialiased
+        }
+
+        input,
+        select {
+            user-select: text
+        }
+
+        button,
+        label {
+            font: inherit;
+            color: inherit;
+            cursor: pointer
+        }
+
+        button {
+            border: 0;
+            background: none;
+            padding: 0
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .opacity-0 {
+            opacity: 0
+        }
+
+        .opacity-100 {
+            opacity: 1
+        }
+
+        .translate-y-2 {
+            transform: translateY(8px)
+        }
+
+        .translate-y-0 {
+            transform: none
+        }
+
+        .font-mono-tech {
+            font-variant-numeric: tabular-nums
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(128, 128, 128, .35);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            background-clip: content-box
+        }
+
+        /* header */
+        .top {
+            flex: none;
+            height: calc(52px + env(safe-area-inset-top));
+            padding: env(safe-area-inset-top) 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--panel);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: .5px solid var(--sep);
+            z-index: 5
+        }
+
+        .brand {
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: -.01em;
+            white-space: nowrap
+        }
+
+        .brand i {
+            font-style: normal;
+            color: var(--t3);
+            font-weight: 500;
+            margin-left: 6px
+        }
+
+        .acts {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 9px;
+            background: var(--fill);
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: opacity .15s
+        }
+
+        .btn:active {
+            opacity: .6
+        }
+
+        .btn.pri {
+            background: var(--ac);
+            color: #fff
+        }
+
+        .btn.sm {
+            height: 26px;
+            padding: 0 10px;
+            font-size: 12px
+        }
+
+        .seg {
+            display: inline-flex;
+            background: var(--fill);
+            border-radius: 9px;
+            padding: 2px;
+            gap: 2px
+        }
+
+        .seg.full {
+            display: flex
+        }
+
+        .seg.full .seg-btn {
+            flex: 1
+        }
+
+        .seg-btn,
+        .tab-btn {
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: background .15s
+        }
+
+        .seg-btn.on,
+        .tab-btn.active {
+            background: var(--segon);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .14)
+        }
+
+        .tag {
+            font-size: 12px;
+            color: var(--t3);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0
+        }
+
+        .tag.on {
+            color: var(--ac)
+        }
+
+        /* layout */
+        main {
+            flex: 1;
+            min-height: 0;
+            display: flex
+        }
+
+        .panel {
+            flex: none;
+            width: 300px;
+            overflow-y: auto;
+            background: var(--bg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px
+        }
+
+        .left {
+            border-right: .5px solid var(--sep)
+        }
+
+        .right {
+            width: 348px;
+            padding: 0;
+            gap: 0;
+            border-left: .5px solid var(--sep);
+            overflow: hidden
+        }
+
+        .rtabs {
+            display: flex;
+            margin: 12px 16px;
+            flex: none
+        }
+
+        .rtabs .tab-btn {
+            flex: 1
+        }
+
+        .pane {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 16px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px
+        }
+
+        .stage {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0
+        }
+
+        #viewport-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            outline: 0
+        }
+
+        /* sections */
+        .sec {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .h {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--t2)
+        }
+
+        .sub {
+            font-size: 12px;
+            color: var(--t3);
+            padding: 0 4px
+        }
+
+        .note {
+            margin: 0;
+            padding: 0 4px;
+            font-size: 11px;
+            color: var(--t3)
+        }
+
+        .grp,
+        .sl-list {
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            min-height: 44px
+        }
+
+        .row+.row {
+            border-top: .5px solid var(--sep)
+        }
+
+        .row>span:first-child {
+            flex: 1;
+            min-width: 0
+        }
+
+        .val {
+            color: var(--t2);
+            font-variant-numeric: tabular-nums
+        }
+
+        .tiles {
+            display: grid;
+            gap: 8px
+        }
+
+        .c2 {
+            grid-template-columns: 1fr 1fr
+        }
+
+        .c3 {
+            grid-template-columns: repeat(3, 1fr)
+        }
+
+        .opt-btn {
+            min-width: 0;
+            padding: 10px 8px;
+            border-radius: 12px;
+            background: var(--card);
+            box-shadow: inset 0 0 0 .5px var(--sep);
+            text-align: center;
+            transition: box-shadow .15s, background .15s
+        }
+
+        .opt-btn.l,
+        #fabric-grid .opt-btn {
+            text-align: left;
+            padding: 10px 12px
+        }
+
+        .opt-btn>div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .opt-btn>div:first-child {
+            font-size: 13px;
+            font-weight: 600
+        }
+
+        .opt-btn>div+div {
+            font-size: 11px;
+            color: var(--t3);
+            margin-top: 1px
+        }
+
+        .opt-btn.active {
+            background: var(--act);
+            box-shadow: inset 0 0 0 2px var(--ac)
+        }
+
+        .tiles>.btn {
+            height: 40px;
+            border-radius: 12px;
+            background: var(--card)
+        }
+
+        /* controls */
+        .sw {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: none;
+            width: 44px;
+            height: 26px;
+            border-radius: 13px;
+            background: var(--track);
+            position: relative;
+            cursor: pointer;
+            transition: background .2s;
+            margin: 0
+        }
+
+        .sw::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+            transition: transform .2s
+        }
+
+        .sw:checked {
+            background: #34c759
+        }
+
+        .sw:checked::after {
+            transform: translateX(18px)
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--track);
+            outline: 0;
+            margin: 12px 0
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: .5px solid rgba(0, 0, 0, .1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .3)
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: .5px solid rgba(0, 0, 0, .1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .3)
+        }
+
+        input[type=color] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: 0;
+            background: none;
+            cursor: pointer
+        }
+
+        input[type=color]::-webkit-color-swatch-wrapper {
+            padding: 0
+        }
+
+        input[type=color]::-webkit-color-swatch {
+            border: .5px solid var(--sep);
+            border-radius: 50%
+        }
+
+        input[type=color]::-moz-color-swatch {
+            border: .5px solid var(--sep);
+            border-radius: 50%
+        }
+
+        .sel {
+            background: var(--bg);
+            border: 0;
+            border-radius: 8px;
+            padding: 4px 8px;
+            color: var(--ac);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 500
+        }
+
+        .inp {
+            flex: 1;
+            min-width: 0;
+            height: 36px;
+            border: 0;
+            border-radius: 10px;
+            background: var(--card);
+            padding: 0 12px;
+            font: inherit;
+            color: var(--t1);
+            box-shadow: inset 0 0 0 .5px var(--sep);
+            outline: 0
+        }
+
+        .inp:focus {
+            box-shadow: inset 0 0 0 2px var(--ac)
+        }
+
+        .saverow {
+            display: flex;
+            gap: 8px
+        }
+
+        .saverow .btn {
+            height: 36px
+        }
+
+        /* generated by JS */
+        .sl-list>div {
+            padding: 12px 14px
+        }
+
+        .sl-list>div+div {
+            border-top: .5px solid var(--sep)
+        }
+
+        .sl-list>div>div:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px
+        }
+
+        .sl-list>div>div>div {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: none
+        }
+
+        .sl-list input[type=range] {
+            margin: 14px 0 4px
+        }
+
+        .sl-list input[type=number] {
+            -moz-appearance: textfield;
+            width: 64px;
+            height: 28px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--ac);
+            text-align: right;
+            padding: 0 8px;
+            font: inherit;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            outline: 0
+        }
+
+        .sl-list input::-webkit-inner-spin-button {
+            display: none
+        }
+
+        .sl-list input[type=number]+span {
+            color: var(--t3);
+            font-size: 11px;
+            min-width: 16px
+        }
+
+        #color-swatches {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px
+        }
+
+        #color-swatches button {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: .5px solid var(--sep) !important
+        }
+
+        #curated-presets-list,
+        #user-presets-list {
+            display: grid;
+            gap: 8px
+        }
+
+        #curated-presets-list>div,
+        #user-presets-list>div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer
+        }
+
+        #curated-presets-list>div>div>div:first-child {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        #curated-presets-list>div>div>div+div {
+            font-size: 12px;
+            color: var(--t2);
+            margin-top: 2px
+        }
+
+        #curated-presets-list>div>span {
+            flex: none;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ac);
+            background: var(--act);
+            padding: 4px 12px;
+            border-radius: 999px
+        }
+
+        #user-presets-list>div {
+            cursor: default;
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        #user-presets-list button {
+            color: var(--ac);
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        #measure-readout>div {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr 1fr 1fr;
+            padding: 9px 14px;
+            font-size: 13px;
+            border-top: .5px solid var(--sep)
+        }
+
+        #measure-readout>div:first-child {
+            border: 0;
+            font-size: 11px;
+            padding-bottom: 4px
+        }
+
+        #measure-readout>div:first-child span {
+            color: var(--t3) !important;
+            font-weight: 400 !important
+        }
+
+        #measure-readout .text-right {
+            text-align: right
+        }
+
+        #measure-readout>div span:nth-child(1) {
+            color: var(--t1)
+        }
+
+        #measure-readout>div span:nth-child(2) {
+            color: var(--ac);
+            font-weight: 600
+        }
+
+        #measure-readout>div span:nth-child(3) {
+            color: var(--t1)
+        }
+
+        #measure-readout>div span:nth-child(4) {
+            color: var(--t3)
+        }
+
+        /* nút do JS tự gán class: nhận diện trạng thái bật bằng class gốc */
+        #env-dark,
+        #env-neutral,
+        #env-light,
+        #vmode-pbr,
+        #vmode-seams,
+        #vmode-wireframe {
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            background: none;
+            color: var(--t1)
+        }
+
+        #env-dark[class*="bg-amber"],
+        #env-neutral[class*="bg-amber"],
+        #env-light[class*="bg-amber"] {
+            background: var(--segon);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .14)
+        }
+
+        #vmode-pbr[class*="bg-amber"],
+        #vmode-seams[class*="bg-amber"],
+        #vmode-wireframe[class*="bg-amber"] {
+            background: var(--fill)
+        }
+
+        #badge-breast-type,
+        [id^=hand-stitch-status] {
+            font-size: 12px;
+            color: var(--t3);
+            background: none;
+            border: 0;
+            padding: 0;
+            font-weight: 400
+        }
+
+        #badge-breast-type[class*="bg-amber"],
+        [id^=hand-stitch-status][class*="bg-amber"] {
+            color: var(--ac)
+        }
+
+        /* stage overlays */
+        .glass {
+            position: absolute;
+            background: var(--glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: .5px solid var(--sep);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, .08)
+        }
+
+        .glass .seg-btn.on {
+            background: var(--fill);
+            box-shadow: none
+        }
+
+        .hud {
+            top: 12px;
+            left: 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            pointer-events: none
+        }
+
+        #hud-style-summary {
+            font-weight: 600;
+            font-size: 13px
+        }
+
+        .hud>div+div {
+            margin-top: 2px;
+            font-size: 11px;
+            color: var(--t2);
+            font-variant-numeric: tabular-nums
+        }
+
+        .hud>div+div span+span {
+            margin-left: 10px
+        }
+
+        .vmodes {
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 2px;
+            padding: 3px;
+            border-radius: 11px
+        }
+
+        .cams {
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2px;
+            padding: 4px;
+            border-radius: 999px;
+            max-width: calc(100% - 24px);
+            overflow-x: auto;
+            scrollbar-width: none
+        }
+
+        .cams::-webkit-scrollbar {
+            display: none
+        }
+
+        .cams .seg-btn {
+            border-radius: 999px
+        }
+
+        .hint {
+            position: absolute;
+            left: 14px;
+            bottom: 20px;
+            font-size: 11px;
+            color: var(--t3);
+            pointer-events: none
+        }
+
+        #toast-box {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 66px;
+            margin: auto;
+            width: max-content;
+            max-width: 90%;
+            padding: 9px 16px;
+            border-radius: 999px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: .5px solid var(--sep);
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            transition: opacity .25s, transform .25s
+        }
+
+        .mtabs,
+        .grab {
+            display: none
+        }
+
+        .ibtn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--t3);
+            transition: color .15s, background .15s
+        }
+
+        .ibtn:hover {
+            background: var(--fill)
+        }
+
+        .ibtn.on {
+            color: var(--ac)
+        }
+
+        @media(min-width:961px) {
+            body.lc .left {
+                display: none
+            }
+
+            body.rc .right {
+                display: none
+            }
+        }
+
+        @media(max-width:1180px) {
+            .panel {
+                width: 276px
+            }
+
+            .right {
+                width: 324px
+            }
+
+            .hint {
+                display: none
+            }
+        }
+
+        @media(max-width:960px) {
+            main {
+                flex-direction: column
+            }
+
+            .stage {
+                order: -2;
+                flex: none;
+                height: 42dvh
+            }
+
+            body.mc .left,
+            body.mc .right {
+                display: none
+            }
+
+            body.mc .stage {
+                height: auto;
+                flex: 1
+            }
+
+            .grab {
+                display: flex;
+                order: -1;
+                flex: none;
+                justify-content: center;
+                align-items: center;
+                height: 22px;
+                background: var(--bg);
+                border-top: .5px solid var(--sep)
+            }
+
+            .grab span {
+                width: 36px;
+                height: 4px;
+                border-radius: 2px;
+                background: rgba(120, 120, 128, .4)
+            }
+
+            .panel,
+            .right {
+                width: 100%;
+                flex: 1;
+                min-height: 0;
+                border: 0
+            }
+
+            .right>.rtabs {
+                display: none
+            }
+
+            body:not([data-m=style]) .left,
+            body[data-m=style] .right {
+                display: none
+            }
+
+            .envseg,
+            .hud,
+            .hide-m {
+                display: none
+            }
+
+            .vmodes {
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%)
+            }
+
+            .top {
+                padding-left: 12px;
+                padding-right: 12px
+            }
+
+            .acts {
+                gap: 6px
+            }
+
+            .btn {
+                padding: 0 11px
+            }
+
+            .mtabs {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                flex: none;
+                background: var(--panel);
+                backdrop-filter: saturate(180%) blur(20px);
+                -webkit-backdrop-filter: saturate(180%) blur(20px);
+                border-top: .5px solid var(--sep);
+                padding-bottom: env(safe-area-inset-bottom)
+            }
+
+            .mtabs button {
+                padding: 7px 0 6px;
+                font-size: 10px;
+                font-weight: 500;
+                color: var(--t3)
+            }
+
+            .mtabs button.on {
+                color: var(--ac)
+            }
+
+            input[type=number],
+            .inp,
+            .sel {
+                font-size: 16px !important
+            }
+
+            .glass .seg-btn,
+            .vmodes button {
+                padding: 4px 9px !important;
+                font-size: 11px !important
+            }
+
+            .vmodes {
+                top: 8px;
+                padding: 2px
+            }
+
+            .cams {
+                bottom: 8px;
+                padding: 2px
+            }
+
+            #toast-box {
+                bottom: 44px
+            }
+        }
+    </style>
 </head>
+
 <body data-m="style">
-<header class="top">
- <div class="acts"><button class="ibtn on hide-m" data-t="l" onclick="ui.t('l')" title="Ẩn/hiện panel kiểu dáng"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="3" width="14.5" height="12" rx="2.5"/><path d="M6.5 3v12"/></svg></button><div class="brand">Atelier Veston<i>3D</i></div></div>
- <div class="acts">
-  <div class="seg envseg"><button id="env-dark" onclick="app.setStudioTheme('dark')" class="seg-btn on">Tối</button><button id="env-neutral" onclick="app.setStudioTheme('neutral')" class="seg-btn">Trung tính</button><button id="env-light" onclick="app.setStudioTheme('light')" class="seg-btn">Sáng</button></div>
-  <button class="btn hide-m" onclick="app.resetToDefault()">Mặc định</button>
-  <button class="btn" onclick="app.captureScreenshot()">Chụp ảnh</button>
-  <button class="btn pri" onclick="app.exportGLB()">Xuất GLB</button>
-  <button class="ibtn on hide-m" data-t="r" onclick="ui.t('r')" title="Ẩn/hiện panel chi tiết"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="3" width="14.5" height="12" rx="2.5"/><path d="M11.5 3v12"/></svg></button>
- </div>
-</header>
-<main>
- <aside class="panel left"><div class="sec"><div class="h"><span>Hàng cúc</span><span id="badge-breast-type" class="tag">Single-Breasted</span></div><div class="sub">Một hàng cúc</div><div class="tiles c3"><button data-closure="1_btn" onclick="app.setStyleOption('closure','1_btn')" class="opt-btn"><div>1 cúc</div><div>V-zone sâu</div></button><button data-closure="2_btn" onclick="app.setStyleOption('closure','2_btn')" class="opt-btn active"><div>2 cúc</div><div>Chuẩn sartorial</div></button><button data-closure="3_btn" onclick="app.setStyleOption('closure','3_btn')" class="opt-btn"><div>3 cúc</div><div>Cổ điển Anh</div></button></div><div class="sub">Hai hàng cúc (Double-Breasted)</div><div class="tiles c2"><button data-closure="db_4x2" onclick="app.setStyleOption('closure','db_4x2')" class="opt-btn l"><div>4 cúc · 4×2</div><div>2 cột × 2 hàng</div></button><button data-closure="db_6x2" onclick="app.setStyleOption('closure','db_6x2')" class="opt-btn l"><div>6 cúc · 6×2</div><div>2 cột × 3 hàng</div></button></div></div><div class="sec"><div class="h"><span>Kiểu ve áo</span></div><div class="tiles c3"><button data-lapel="notch" onclick="app.setStyleOption('lapel','notch')" class="opt-btn active"><div>Ve chữ K</div><div>Notch</div></button><button data-lapel="peak" onclick="app.setStyleOption('lapel','peak')" class="opt-btn"><div>Ve nhọn</div><div>Peak</div></button><button data-lapel="shawl" onclick="app.setStyleOption('lapel','shawl')" class="opt-btn"><div>Ve sam</div><div>Shawl</div></button></div><div class="grp"><div class="row"><span>Phủ lụa satin mặt ve</span><input type="checkbox" class="sw" id="toggle-satin-lapel" onchange="app.setBooleanOption('satinLapel', this.checked)"></div></div></div><div class="sec"><div class="h"><span>Túi áo</span></div><div class="tiles c3"><button data-pocket="flap" onclick="app.setStyleOption('pocket','flap')" class="opt-btn active"><div>Túi nắp</div><div>Flap</div></button><button data-pocket="jetted" onclick="app.setStyleOption('pocket','jetted')" class="opt-btn"><div>Túi viền</div><div>Jetted</div></button><button data-pocket="patch" onclick="app.setStyleOption('pocket','patch')" class="opt-btn"><div>Túi đắp</div><div>Patch</div></button></div><div class="grp"><div class="row"><span>Túi ngực</span><input type="checkbox" class="sw" id="toggle-breast-pocket" checked onchange="app.setBooleanOption('breastPocket', this.checked)"></div><div class="row"><span>Khăn túi ngực</span><input type="checkbox" class="sw" id="toggle-pocket-square" checked onchange="app.setBooleanOption('pocketSquare', this.checked)"></div><div class="row"><span>Túi vé bên phải</span><input type="checkbox" class="sw" id="toggle-ticket-pocket" checked onchange="app.setBooleanOption('ticketPocket', this.checked)"></div><div class="row"><span>Đường chỉ thủ công</span><span id="hand-stitch-status-left" class="tag">Tắt</span><input type="checkbox" class="sw" id="toggle-hand-stitch-left" onchange="app.toggleHandStitching(this.checked)"></div></div></div><div class="sec"><div class="h"><span>Xẻ tà thân sau</span></div><div class="tiles c3"><button data-vent="double" onclick="app.setStyleOption('vent','double')" class="opt-btn active"><div>Xẻ 2 bên</div><div>Side vents</div></button><button data-vent="center" onclick="app.setStyleOption('vent','center')" class="opt-btn"><div>Xẻ giữa</div><div>Center vent</div></button><button data-vent="none" onclick="app.setStyleOption('vent','none')" class="opt-btn"><div>Không xẻ</div><div>Ventless</div></button></div></div><div class="sec"><div class="h"><span>Vạt áo & trang phục trong</span><button class="btn sm" onclick="app.toggleJacketOpen()">Đóng / Mở</button></div><div class="grp"><div class="row"><span>Độ mở vạt</span><span id="lbl-open-amount" class="val">0%</span></div><div class="row"><input type="range" id="rng-open-amount" min="0" max="1" step="0.02" value="0" oninput="app.setOpenAmount(parseFloat(this.value))"></div></div><div class="grp"><div class="row"><span>Sơ mi</span><input type="checkbox" class="sw" id="toggle-shirt" checked onchange="app.setBooleanOption('showShirt', this.checked)"></div><div class="row"><span>Cà vạt</span><input type="checkbox" class="sw" id="toggle-tie" checked onchange="app.setBooleanOption('showTie', this.checked)"></div><div class="row"><span>Áo gile</span><input type="checkbox" class="sw" id="toggle-trousers" checked onchange="app.setBooleanOption('showWaistcoat', this.checked)"></div></div></div></aside>
- <section class="stage">
-  <div id="canvas-container"><canvas id="viewport-canvas"></canvas></div>
-  <div class="glass hud"><div id="hud-style-summary"></div><div><span id="hud-poly-count"></span><span id="hud-fit-badge"></span></div></div>
-  <div class="glass vmodes"><button id="vmode-pbr" onclick="app.setViewMode('pbr')" class="seg-btn on">Vật liệu</button><button id="vmode-seams" onclick="app.setViewMode('seams')" class="seg-btn">Đường ráp</button><button id="vmode-wireframe" onclick="app.setViewMode('wireframe')" class="seg-btn">Khung lưới</button></div>
-  <div class="hint">Kéo để xoay · Cuộn để zoom · Chuột phải để di chuyển</div>
-  <div class="glass cams"><button class="seg-btn" onclick="app.setCameraView('front')">Chính diện</button><button class="seg-btn" onclick="app.setCameraView('angle45L')">45° trái</button><button class="seg-btn" onclick="app.setCameraView('angle45R')">45° phải</button><button class="seg-btn" onclick="app.setCameraView('lapelZoom')">Cổ & ve</button><button class="seg-btn" onclick="app.setCameraView('side')">Ngang</button><button class="seg-btn" onclick="app.setCameraView('back')">Sau</button></div>
-  <div id="toast-box" class="opacity-0 translate-y-2"></div>
- </section>
- <button class="grab" onclick="ui.t('m')" aria-label="Thu/mở"><span></span></button>
- <aside class="panel right"><div class="rtabs seg"><button id="tab-btn-body" onclick="app.switchRightTab('body')" class="tab-btn active">Số đo</button><button id="tab-btn-details" onclick="app.switchRightTab('details')" class="tab-btn">Ve & Tay</button><button id="tab-btn-fabric" onclick="app.switchRightTab('fabric')" class="tab-btn">Vải</button><button id="tab-btn-presets" onclick="app.switchRightTab('presets')" class="tab-btn">Lưu / Xuất</button></div><div id="tab-panel-body" class="pane"><div class="sec"><div class="h"><span>Số đo & phom áo (cm)</span></div><div class="seg full"><button class="seg-btn" onclick="app.applyQuickFit('slim')">Slim</button><button class="seg-btn" onclick="app.applyQuickFit('regular')">Regular</button><button class="seg-btn" onclick="app.applyQuickFit('relaxed')">Relaxed</button></div><div id="sliders-body" class="sl-list"></div></div><div class="sec"><div class="h"><span>Số đo thực trên mô hình</span></div><div id="measure-readout" class="grp"></div><p class="note">Chu vi đo trực tiếp từ lưới 3D tại từng vị trí. “Thân” là mannequin, “Áo” là áo vest đã gồm độ dư vải.</p></div></div><div id="tab-panel-details" class="pane hidden"><div class="sec"><div class="h"><span>Ve áo & bâu cổ</span></div><div id="sliders-lapel" class="sl-list"></div></div><div class="sec"><div class="h"><span>Tay áo & khuy măng-sét</span><select id="sel-cuff-buttons" class="sel" onchange="app.setCuffButtons(parseInt(this.value))"><option value="1">1 khuy</option><option value="2">2 khuy</option><option value="3">3 khuy</option><option value="4" selected>4 khuy</option><option value="5">5 khuy</option></select></div><div id="sliders-sleeve" class="sl-list"></div></div><div class="sec"><div class="h"><span>Cúc, khuyết & đường chỉ</span></div><div id="sliders-buttons" class="sl-list"></div><div class="grp"><div class="row"><span>Đường chỉ thủ công</span><span id="hand-stitch-status-right" class="tag">Tắt</span><input type="checkbox" class="sw" id="toggle-pick-stitch" onchange="app.toggleHandStitching(this.checked)"></div><div class="row"><span>Màu chỉ khâu & viền khuyết</span><input type="color" id="stitch-color-picker" value="#3a3f4d" oninput="app.setStitchColor(this.value)"></div></div></div></div><div id="tab-panel-fabric" class="pane hidden"><div class="sec"><div class="h"><span>Chất liệu vải</span></div><div id="fabric-grid" class="tiles c2"></div></div><div class="sec"><div class="h"><span>Màu vải</span><input type="color" id="fabric-color-picker" value="#1c283d" oninput="app.setFabricColor(this.value)"></div><div id="color-swatches"></div></div><div class="sec"><div class="h"><span>Vân dệt & độ nhám</span></div><div class="grp"><div class="row"><span>Mật độ vân dệt</span><span id="lbl-tex-scale" class="val">1.0x</span></div><div class="row"><input type="range" min="0.5" max="2.2" step="0.1" value="1.0" oninput="app.setTextureScale(parseFloat(this.value))"></div></div><div class="grp"><div class="row"><span>Độ nhám bề mặt</span><span id="lbl-roughness" class="val">0.72</span></div><div class="row"><input type="range" id="rng-roughness" min="0.25" max="0.95" step="0.02" value="0.72" oninput="app.setCustomRoughness(parseFloat(this.value))"></div></div></div><div class="sec"><div class="h"><span>Cúc & lụa lót</span></div><div class="tiles c2"><button data-btnmat="horn" onclick="app.setButtonMaterial('horn')" class="opt-btn l active"><div>Sừng tự nhiên</div><div>Dark buffalo horn</div></button><button data-btnmat="pearl" onclick="app.setButtonMaterial('pearl')" class="opt-btn l"><div>Xà cừ</div><div>Smoked pearl</div></button><button data-btnmat="brass" onclick="app.setButtonMaterial('brass')" class="opt-btn l"><div>Đồng mạ vàng</div><div>Blazer brass</div></button><button data-btnmat="covered" onclick="app.setButtonMaterial('covered')" class="opt-btn l"><div>Bọc lụa / vải</div><div>Satin covered</div></button></div><div class="grp"><div class="row"><span>Màu lụa lót (Bemberg)</span><input type="color" id="lining-color-picker" value="#7c1d2e" oninput="app.setLiningColor(this.value)"></div></div></div></div><div id="tab-panel-presets" class="pane hidden"><div class="sec"><div class="h"><span>Mẫu thiết kế chuẩn</span></div><div id="curated-presets-list"></div></div><div class="sec"><div class="h"><span>Lưu & xuất cấu hình</span></div><div class="saverow"><input id="input-preset-name" class="inp" type="text" placeholder="Tên mẫu vest của bạn"><button class="btn pri" onclick="app.saveUserPreset()">Lưu</button></div><div id="user-presets-list"></div><div class="tiles c2"><button class="btn" onclick="app.exportJSON()">Xuất .JSON</button><label class="btn">Nhập .JSON<input type="file" accept=".json" hidden onchange="app.importJSON(event)"></label></div></div></div></aside>
-</main>
-<nav class="mtabs" id="mtabs"><button data-m="style" onclick="ui.m('style')" class="on">Kiểu dáng</button><button data-m="body" onclick="ui.m('body')" class="">Số đo</button><button data-m="details" onclick="ui.m('details')" class="">Ve & Tay</button><button data-m="fabric" onclick="ui.m('fabric')" class="">Vải</button><button data-m="presets" onclick="ui.m('presets')" class="">Lưu</button></nav>
-<script>/* ===== DÁN TOÀN BỘ SCRIPT GỐC CỦA BẠN VÀO ĐÂY (xoá dòng này) ===== */</script>
-<script>
-const ui={t(k){const c={l:'lc',r:'rc',m:'mc'}[k],on=document.body.classList.toggle(c);document.querySelectorAll('[data-t="'+k+'"]').forEach(b=>b.classList.toggle('on',!on));},
-m(n){const b=document.body;if(b.dataset.m===n&&!b.classList.contains('mc')){b.classList.add('mc');return;}b.classList.remove('mc');b.dataset.m=n;document.querySelectorAll('#mtabs button').forEach(x=>x.classList.toggle('on',x.dataset.m===n));if(n!=='style')app.switchRightTab(n);}};
-(function(){let q;new ResizeObserver(()=>{cancelAnimationFrame(q);q=requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));}).observe(document.querySelector('.stage'));})();
-(function(){const o=window.onload,mq=matchMedia('(prefers-color-scheme: dark)'),sync=()=>typeof app!=='undefined'&&app&&app.setStudioTheme(mq.matches?'dark':'light');
-window.onload=function(){o&&o();sync();};mq.addEventListener&&mq.addEventListener('change',sync);})();
-</script>
+    <header class="top">
+        <div class="acts"><button class="ibtn on hide-m" data-t="l" onclick="ui.t('l')"
+                title="Ẩn/hiện panel kiểu dáng"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <rect x="1.75" y="3" width="14.5" height="12" rx="2.5" />
+                    <path d="M6.5 3v12" />
+                </svg></button>
+            <div class="brand">Atelier Veston<i>3D</i></div>
+        </div>
+        <div class="acts">
+            <div class="seg envseg"><button id="env-dark" onclick="app.setStudioTheme('dark')"
+                    class="seg-btn on">Tối</button><button id="env-neutral" onclick="app.setStudioTheme('neutral')"
+                    class="seg-btn">Trung tính</button><button id="env-light" onclick="app.setStudioTheme('light')"
+                    class="seg-btn">Sáng</button></div>
+            <button class="btn hide-m" onclick="app.resetToDefault()">Mặc định</button>
+            <button class="btn" onclick="app.captureScreenshot()">Chụp ảnh</button>
+            <button class="btn pri" onclick="app.exportGLB()">Xuất GLB</button>
+            <button class="ibtn on hide-m" data-t="r" onclick="ui.t('r')" title="Ẩn/hiện panel chi tiết"><svg width="18"
+                    height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="1.75" y="3" width="14.5" height="12" rx="2.5" />
+                    <path d="M11.5 3v12" />
+                </svg></button>
+        </div>
+    </header>
+    <main>
+        <aside class="panel left">
+            <div class="sec">
+                <div class="h"><span>Hàng cúc</span><span id="badge-breast-type" class="tag">Single-Breasted</span>
+                </div>
+                <div class="sub">Một hàng cúc</div>
+                <div class="tiles c3"><button data-closure="1_btn" onclick="app.setStyleOption('closure','1_btn')"
+                        class="opt-btn">
+                        <div>1 cúc</div>
+                        <div>V-zone sâu</div>
+                    </button><button data-closure="2_btn" onclick="app.setStyleOption('closure','2_btn')"
+                        class="opt-btn active">
+                        <div>2 cúc</div>
+                        <div>Chuẩn sartorial</div>
+                    </button><button data-closure="3_btn" onclick="app.setStyleOption('closure','3_btn')"
+                        class="opt-btn">
+                        <div>3 cúc</div>
+                        <div>Cổ điển Anh</div>
+                    </button></div>
+                <div class="sub">Hai hàng cúc (Double-Breasted)</div>
+                <div class="tiles c2"><button data-closure="db_4x2" onclick="app.setStyleOption('closure','db_4x2')"
+                        class="opt-btn l">
+                        <div>4 cúc · 4×2</div>
+                        <div>2 cột × 2 hàng</div>
+                    </button><button data-closure="db_6x2" onclick="app.setStyleOption('closure','db_6x2')"
+                        class="opt-btn l">
+                        <div>6 cúc · 6×2</div>
+                        <div>2 cột × 3 hàng</div>
+                    </button></div>
+            </div>
+            <div class="sec">
+                <div class="h"><span>Kiểu ve áo</span></div>
+                <div class="tiles c3"><button data-lapel="notch" onclick="app.setStyleOption('lapel','notch')"
+                        class="opt-btn active">
+                        <div>Ve chữ K</div>
+                        <div>Notch</div>
+                    </button><button data-lapel="peak" onclick="app.setStyleOption('lapel','peak')" class="opt-btn">
+                        <div>Ve nhọn</div>
+                        <div>Peak</div>
+                    </button><button data-lapel="shawl" onclick="app.setStyleOption('lapel','shawl')" class="opt-btn">
+                        <div>Ve sam</div>
+                        <div>Shawl</div>
+                    </button></div>
+                <div class="grp">
+                    <div class="row"><span>Phủ lụa satin mặt ve</span><input type="checkbox" class="sw"
+                            id="toggle-satin-lapel" onchange="app.setBooleanOption('satinLapel', this.checked)"></div>
+                </div>
+            </div>
+            <div class="sec">
+                <div class="h"><span>Túi áo</span></div>
+                <div class="tiles c3"><button data-pocket="flap" onclick="app.setStyleOption('pocket','flap')"
+                        class="opt-btn active">
+                        <div>Túi nắp</div>
+                        <div>Flap</div>
+                    </button><button data-pocket="jetted" onclick="app.setStyleOption('pocket','jetted')"
+                        class="opt-btn">
+                        <div>Túi viền</div>
+                        <div>Jetted</div>
+                    </button><button data-pocket="patch" onclick="app.setStyleOption('pocket','patch')" class="opt-btn">
+                        <div>Túi đắp</div>
+                        <div>Patch</div>
+                    </button></div>
+                <div class="grp">
+                    <div class="row"><span>Túi ngực</span><input type="checkbox" class="sw" id="toggle-breast-pocket"
+                            checked onchange="app.setBooleanOption('breastPocket', this.checked)"></div>
+                    <div class="row"><span>Khăn túi ngực</span><input type="checkbox" class="sw"
+                            id="toggle-pocket-square" checked
+                            onchange="app.setBooleanOption('pocketSquare', this.checked)"></div>
+                    <div class="row"><span>Túi vé bên phải</span><input type="checkbox" class="sw"
+                            id="toggle-ticket-pocket" checked
+                            onchange="app.setBooleanOption('ticketPocket', this.checked)"></div>
+                    <div class="row"><span>Đường chỉ thủ công</span><span id="hand-stitch-status-left"
+                            class="tag">Tắt</span><input type="checkbox" class="sw" id="toggle-hand-stitch-left"
+                            onchange="app.toggleHandStitching(this.checked)"></div>
+                </div>
+            </div>
+            <div class="sec">
+                <div class="h"><span>Xẻ tà thân sau</span></div>
+                <div class="tiles c3"><button data-vent="double" onclick="app.setStyleOption('vent','double')"
+                        class="opt-btn active">
+                        <div>Xẻ 2 bên</div>
+                        <div>Side vents</div>
+                    </button><button data-vent="center" onclick="app.setStyleOption('vent','center')" class="opt-btn">
+                        <div>Xẻ giữa</div>
+                        <div>Center vent</div>
+                    </button><button data-vent="none" onclick="app.setStyleOption('vent','none')" class="opt-btn">
+                        <div>Không xẻ</div>
+                        <div>Ventless</div>
+                    </button></div>
+            </div>
+            <div class="sec">
+                <div class="h"><span>Vạt áo & trang phục trong</span><button class="btn sm"
+                        onclick="app.toggleJacketOpen()">Đóng / Mở</button></div>
+                <div class="grp">
+                    <div class="row"><span>Độ mở vạt</span><span id="lbl-open-amount" class="val">0%</span></div>
+                    <div class="row"><input type="range" id="rng-open-amount" min="0" max="1" step="0.02" value="0"
+                            oninput="app.setOpenAmount(parseFloat(this.value))"></div>
+                </div>
+                <div class="grp">
+                    <div class="row"><span>Sơ mi</span><input type="checkbox" class="sw" id="toggle-shirt" checked
+                            onchange="app.setBooleanOption('showShirt', this.checked)"></div>
+                    <div class="row"><span>Cà vạt</span><input type="checkbox" class="sw" id="toggle-tie" checked
+                            onchange="app.setBooleanOption('showTie', this.checked)"></div>
+                    <div class="row"><span>Áo gile</span><input type="checkbox" class="sw" id="toggle-trousers" checked
+                            onchange="app.setBooleanOption('showWaistcoat', this.checked)"></div>
+                </div>
+            </div>
+        </aside>
+        <section class="stage">
+            <div id="canvas-container"><canvas id="viewport-canvas"></canvas></div>
+            <div class="glass hud">
+                <div id="hud-style-summary"></div>
+                <div><span id="hud-poly-count"></span><span id="hud-fit-badge"></span></div>
+            </div>
+            <div class="glass vmodes"><button id="vmode-pbr" onclick="app.setViewMode('pbr')" class="seg-btn on">Vật
+                    liệu</button><button id="vmode-seams" onclick="app.setViewMode('seams')" class="seg-btn">Đường
+                    ráp</button><button id="vmode-wireframe" onclick="app.setViewMode('wireframe')"
+                    class="seg-btn">Khung lưới</button></div>
+            <div class="hint">Kéo để xoay · Cuộn để zoom · Chuột phải để di chuyển</div>
+            <div class="glass cams"><button class="seg-btn" onclick="app.setCameraView('front')">Chính
+                    diện</button><button class="seg-btn" onclick="app.setCameraView('angle45L')">45°
+                    trái</button><button class="seg-btn" onclick="app.setCameraView('angle45R')">45°
+                    phải</button><button class="seg-btn" onclick="app.setCameraView('lapelZoom')">Cổ &
+                    ve</button><button class="seg-btn" onclick="app.setCameraView('side')">Ngang</button><button
+                    class="seg-btn" onclick="app.setCameraView('back')">Sau</button></div>
+            <div id="toast-box" class="opacity-0 translate-y-2"></div>
+        </section>
+        <button class="grab" onclick="ui.t('m')" aria-label="Thu/mở"><span></span></button>
+        <aside class="panel right">
+            <div class="rtabs seg"><button id="tab-btn-body" onclick="app.switchRightTab('body')"
+                    class="tab-btn active">Số đo</button><button id="tab-btn-details"
+                    onclick="app.switchRightTab('details')" class="tab-btn">Ve & Tay</button><button id="tab-btn-fabric"
+                    onclick="app.switchRightTab('fabric')" class="tab-btn">Vải</button><button id="tab-btn-presets"
+                    onclick="app.switchRightTab('presets')" class="tab-btn">Lưu / Xuất</button></div>
+            <div id="tab-panel-body" class="pane">
+                <div class="sec">
+                    <div class="h"><span>Số đo & phom áo (cm)</span></div>
+                    <div class="seg full"><button class="seg-btn"
+                            onclick="app.applyQuickFit('slim')">Slim</button><button class="seg-btn"
+                            onclick="app.applyQuickFit('regular')">Regular</button><button class="seg-btn"
+                            onclick="app.applyQuickFit('relaxed')">Relaxed</button></div>
+                    <div id="sliders-body" class="sl-list"></div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Số đo thực trên mô hình</span></div>
+                    <div id="measure-readout" class="grp"></div>
+                    <p class="note">Chu vi đo trực tiếp từ lưới 3D tại từng vị trí. “Thân” là mannequin, “Áo” là áo vest
+                        đã gồm độ dư vải.</p>
+                </div>
+            </div>
+            <div id="tab-panel-details" class="pane hidden">
+                <div class="sec">
+                    <div class="h"><span>Ve áo & bâu cổ</span></div>
+                    <div id="sliders-lapel" class="sl-list"></div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Tay áo & khuy măng-sét</span><select id="sel-cuff-buttons" class="sel"
+                            onchange="app.setCuffButtons(parseInt(this.value))">
+                            <option value="1">1 khuy</option>
+                            <option value="2">2 khuy</option>
+                            <option value="3">3 khuy</option>
+                            <option value="4" selected>4 khuy</option>
+                            <option value="5">5 khuy</option>
+                        </select></div>
+                    <div id="sliders-sleeve" class="sl-list"></div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Cúc, khuyết & đường chỉ</span></div>
+                    <div id="sliders-buttons" class="sl-list"></div>
+                    <div class="grp">
+                        <div class="row"><span>Đường chỉ thủ công</span><span id="hand-stitch-status-right"
+                                class="tag">Tắt</span><input type="checkbox" class="sw" id="toggle-pick-stitch"
+                                onchange="app.toggleHandStitching(this.checked)"></div>
+                        <div class="row"><span>Màu chỉ khâu & viền khuyết</span><input type="color"
+                                id="stitch-color-picker" value="#3a3f4d" oninput="app.setStitchColor(this.value)"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-panel-fabric" class="pane hidden">
+                <div class="sec">
+                    <div class="h"><span>Chất liệu vải</span></div>
+                    <div id="fabric-grid" class="tiles c2"></div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Màu vải</span><input type="color" id="fabric-color-picker" value="#1c283d"
+                            oninput="app.setFabricColor(this.value)"></div>
+                    <div id="color-swatches"></div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Vân dệt & độ nhám</span></div>
+                    <div class="grp">
+                        <div class="row"><span>Mật độ vân dệt</span><span id="lbl-tex-scale" class="val">1.0x</span>
+                        </div>
+                        <div class="row"><input type="range" min="0.5" max="2.2" step="0.1" value="1.0"
+                                oninput="app.setTextureScale(parseFloat(this.value))"></div>
+                    </div>
+                    <div class="grp">
+                        <div class="row"><span>Độ nhám bề mặt</span><span id="lbl-roughness" class="val">0.72</span>
+                        </div>
+                        <div class="row"><input type="range" id="rng-roughness" min="0.25" max="0.95" step="0.02"
+                                value="0.72" oninput="app.setCustomRoughness(parseFloat(this.value))"></div>
+                    </div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Cúc & lụa lót</span></div>
+                    <div class="tiles c2"><button data-btnmat="horn" onclick="app.setButtonMaterial('horn')"
+                            class="opt-btn l active">
+                            <div>Sừng tự nhiên</div>
+                            <div>Dark buffalo horn</div>
+                        </button><button data-btnmat="pearl" onclick="app.setButtonMaterial('pearl')" class="opt-btn l">
+                            <div>Xà cừ</div>
+                            <div>Smoked pearl</div>
+                        </button><button data-btnmat="brass" onclick="app.setButtonMaterial('brass')" class="opt-btn l">
+                            <div>Đồng mạ vàng</div>
+                            <div>Blazer brass</div>
+                        </button><button data-btnmat="covered" onclick="app.setButtonMaterial('covered')"
+                            class="opt-btn l">
+                            <div>Bọc lụa / vải</div>
+                            <div>Satin covered</div>
+                        </button></div>
+                    <div class="grp">
+                        <div class="row"><span>Màu lụa lót (Bemberg)</span><input type="color" id="lining-color-picker"
+                                value="#7c1d2e" oninput="app.setLiningColor(this.value)"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-panel-presets" class="pane hidden">
+                <div class="sec">
+                    <div class="h"><span>Mẫu thiết kế chuẩn</span></div>
+                    <div id="curated-presets-list"></div>
+                </div>
+                <div class="sec">
+                    <div class="h"><span>Lưu & xuất cấu hình</span></div>
+                    <div class="saverow"><input id="input-preset-name" class="inp" type="text"
+                            placeholder="Tên mẫu vest của bạn"><button class="btn pri"
+                            onclick="app.saveUserPreset()">Lưu</button></div>
+                    <div id="user-presets-list"></div>
+                    <div class="tiles c2"><button class="btn" onclick="app.exportJSON()">Xuất .JSON</button><label
+                            class="btn">Nhập .JSON<input type="file" accept=".json" hidden
+                                onchange="app.importJSON(event)"></label></div>
+                </div>
+            </div>
+        </aside>
+    </main>
+    <nav class="mtabs" id="mtabs"><button data-m="style" onclick="ui.m('style')" class="on">Kiểu dáng</button><button
+            data-m="body" onclick="ui.m('body')" class="">Số đo</button><button data-m="details"
+            onclick="ui.m('details')" class="">Ve & Tay</button><button data-m="fabric" onclick="ui.m('fabric')"
+            class="">Vải</button><button data-m="presets" onclick="ui.m('presets')" class="">Lưu</button></nav>
+    <script>/* ===== DÁN TOÀN BỘ SCRIPT GỐC CỦA BẠN VÀO ĐÂY (xoá dòng này) ===== */</script>
+    <script>
+        const ui = {
+            t(k) { const c = { l: 'lc', r: 'rc', m: 'mc' }[k], on = document.body.classList.toggle(c); document.querySelectorAll('[data-t="' + k + '"]').forEach(b => b.classList.toggle('on', !on)); },
+            m(n) { const b = document.body; if (b.dataset.m === n && !b.classList.contains('mc')) { b.classList.add('mc'); return; } b.classList.remove('mc'); b.dataset.m = n; document.querySelectorAll('#mtabs button').forEach(x => x.classList.toggle('on', x.dataset.m === n)); if (n !== 'style') app.switchRightTab(n); }
+        };
+        (function () { let q; new ResizeObserver(() => { cancelAnimationFrame(q); q = requestAnimationFrame(() => window.dispatchEvent(new Event('resize'))); }).observe(document.querySelector('.stage')); })();
+        (function () {
+            const o = window.onload, mq = matchMedia('(prefers-color-scheme: dark)'), sync = () => typeof app !== 'undefined' && app && app.setStudioTheme(mq.matches ? 'dark' : 'light');
+            window.onload = function () { o && o(); sync(); }; mq.addEventListener && mq.addEventListener('change', sync);
+        })();
+    </script>
 
     <script>
         /**
@@ -171,22 +1321,27 @@ window.onload=function(){o&&o();sync();};mq.addEventListener&&mq.addEventListene
          */
         const PARAMETRIC_SCHEMA = {
             body: [
-    { key: 'height', label: 'Chiều cao tham chiếu', min: 165, max: 192, step: 1, def: 178, unit: 'cm' },
-    { key: 'shoulderWidth', label: 'Chiều rộng vai (Acromion)', min: 41, max: 52, step: 0.5, def: 46.0, unit: 'cm' },
-    { key: 'chestProjection', label: 'Căng ngực trên (dưới xương đòn)', min: -1.5, max: 2.5, step: 0.1, def: 0.0, unit: 'cm' },
-    { key: 'chest', label: 'Vòng ngực (Full Chest)', min: 88, max: 118, step: 1, def: 100, unit: 'cm' },
-    { key: 'lowerChest', label: 'Ngực dưới / sườn (trên eo trên)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
-    { key: 'upperWaist', label: 'Eo trên (giữa ngực – eo)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
-    { key: 'waist', label: 'Vòng eo (Natural Waist)', min: 74, max: 108, step: 1, def: 86, unit: 'cm' },
-    { key: 'lowerWaist', label: 'Eo dưới / bụng dưới', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
-    { key: 'hip', label: 'Vòng hông trên (Upper Hip)', min: 88, max: 116, step: 1, def: 98, unit: 'cm' },
-    { key: 'lowHip', label: 'Hông dưới (mông)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
-    { key: 'bodyCurve', label: 'Độ cong tổng thể (ngực–eo–hông)', min: 0.0, max: 1.5, step: 0.05, def: 1.0, unit: '' },
-    { key: 'jacketLength', label: 'Chiều dài áo vest', min: 68, max: 82, step: 0.5, def: 68, unit: 'cm' },
-    { key: 'fitEase', label: 'Độ ôm / Độ dư vải (Fit Ease)', min: -1.5, max: 4.0, step: 0.25, def: 0.8, unit: 'cm' },
-    { key: 'shoulderSlope', label: 'Độ xuôi vai tự nhiên', min: 10, max: 22, step: 0.5, def: 15.5, unit: '°' },
-    { key: 'hemCurve', label: 'Độ bo cong vạt gấu (Cutaway)', min: 0.0, max: 1.0, step: 0.05, def: 0.55, unit: '' }
-],
+                { key: 'height', label: 'Chiều cao tham chiếu', min: 165, max: 192, step: 1, def: 178, unit: 'cm' },
+                { key: 'shoulderWidth', label: 'Chiều rộng vai (Acromion)', min: 41, max: 52, step: 0.5, def: 46.0, unit: 'cm' },
+                { key: 'chestAll', label: 'Toàn bộ vùng ngực (đầy ↔ thon)', min: -25, max: 15, step: 0.5, def: 0, unit: 'mm' },
+                { key: 'chestProjection', label: 'Ngực trên (dưới xương đòn)', min: -3, max: 2.5, step: 0.1, def: 0.0, unit: 'cm' },
+                { key: 'chestMid', label: 'Ngực giữa (ngang túi ngực)', min: -20, max: 15, step: 0.5, def: 0, unit: 'mm' },
+                { key: 'chestOuter', label: 'Ngực ngoài (gần nách)', min: -20, max: 15, step: 0.5, def: 0, unit: 'mm' },
+                { key: 'chestLow', label: 'Ngực dưới (sát nách → eo trên)', min: -20, max: 15, step: 0.5, def: 0, unit: 'mm' },
+                { key: 'chest', label: 'Vòng ngực (Full Chest)', min: 88, max: 118, step: 1, def: 100, unit: 'cm' },
+                { key: 'lowerChest', label: 'Sườn dưới lồng ngực', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+                { key: 'midTorso', label: 'Độ phình thân giữa (ngực–eo)', min: -15, max: 15, step: 0.5, def: 0, unit: 'mm' },
+                { key: 'upperWaist', label: 'Eo trên (giữa ngực – eo)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+                { key: 'waist', label: 'Vòng eo (Natural Waist)', min: 74, max: 108, step: 1, def: 86, unit: 'cm' },
+                { key: 'lowerWaist', label: 'Eo dưới / bụng dưới', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+                { key: 'hip', label: 'Vòng hông trên (Upper Hip)', min: 88, max: 116, step: 1, def: 98, unit: 'cm' },
+                { key: 'lowHip', label: 'Hông dưới (mông)', min: -6, max: 6, step: 0.5, def: 0, unit: 'cm' },
+                { key: 'bodyCurve', label: 'Độ cong tổng thể (ngực–eo–hông)', min: 0.0, max: 1.5, step: 0.05, def: 1.0, unit: '' },
+                { key: 'jacketLength', label: 'Chiều dài áo vest', min: 68, max: 82, step: 0.5, def: 68, unit: 'cm' },
+                { key: 'fitEase', label: 'Độ ôm / Độ dư vải (Fit Ease)', min: -1.5, max: 4.0, step: 0.25, def: 0.8, unit: 'cm' },
+                { key: 'shoulderSlope', label: 'Độ xuôi vai tự nhiên', min: 10, max: 22, step: 0.5, def: 15.5, unit: '°' },
+                { key: 'hemCurve', label: 'Độ bo cong vạt gấu (Cutaway)', min: 0.0, max: 1.0, step: 0.05, def: 0.55, unit: '' }
+            ],
             lapel: [
                 { key: 'lapelWidth', label: 'Bản rộng ve áo', min: 6.5, max: 12.5, step: 0.25, def: 9.6, unit: 'cm' },
                 { key: 'vZoneDepth', label: 'Độ dài ve / Độ sâu V-Zone', min: 28, max: 44, step: 0.5, def: 37.5, unit: 'cm' },
@@ -207,6 +1362,31 @@ window.onload=function(){o&&o();sync();};mq.addEventListener&&mq.addEventListene
                 { key: 'buttonSpacing', label: 'Khoảng cách hàng cúc', min: 8.0, max: 13.5, step: 0.5, def: 10.5, unit: 'cm' },
                 { key: 'buttonEdgeOffset', label: 'Khoảng cách cúc tới mép', min: 1.8, max: 3.8, step: 0.1, def: 2.4, unit: 'cm' }
             ]
+        };
+
+        // u: vị trí dọc thân (0 = gấu, 1 = ngang vai); t: toạ độ chuẩn hoá trực tiếp
+        // zone: [uThấp, uCao] = dải vùng (u: 0 = gấu, 1 = ngang vai)
+        // shoulder: dải hai vai + đường may vai + chấm hai đầu vai
+        // u / t: vòng đơn
+        const SLIDER_MARKERS = {
+            shoulderWidth: { shoulder: true },
+            shoulderSlope: { shoulder: true },
+            chestAll: { zone: [0.614, 1.128], sectors: [[-1.45, 1.45]] },
+            chestProjection: { zone: [0.883, 1.104], sectors: [[-1.45, 1.45]] },
+            chestMid: { zone: [0.761, 0.957], sectors: [[-0.95, 0.95]] },
+            chestOuter: { zone: [0.687, 0.933], sectors: [[0.35, 1.45], [-1.45, -0.35]] },
+            chestLow: { zone: [0.614, 0.785], sectors: [[-1.45, 1.45]] },
+            chest: { zone: [0.64, 0.86] },
+            lowerChest: { zone: [0.55, 0.69] },
+            midTorso: { zone: [0.49, 0.67] },
+            upperWaist: { zone: [0.47, 0.62] },
+            waist: { zone: [0.42, 0.56] },
+            lowerWaist: { zone: [0.22, 0.44] },
+            hip: { zone: [0.08, 0.22] },
+            lowHip: { zone: [0.01, 0.17] },
+            bodyCurve: { u: [0.7055, 0.48, 0.14] },
+            fitEase: { u: [0.7055, 0.48, 0.14] },
+            jacketLength: { t: [0.0] }
         };
 
         const FABRIC_LIBRARY = [
@@ -419,7 +1599,40 @@ window.onload=function(){o&&o();sync();};mq.addEventListener&&mq.addEventListene
          */
         class AnatomicalSurfaceEngine {
 
-          
+            // Cửa sổ cosine C1 có biên cứng: bằng 0 tuyệt đối ngoài (a, b), đỉnh ở giữa
+            static bump(t, a, b) {
+                if (t <= a || t >= b) return 0.0;
+                const x = (t - a) / (b - a);
+                return 0.5 - 0.5 * Math.cos(2.0 * Math.PI * x);
+            }
+
+            // Độ dày thêm/bớt mặt trước của vùng ngực (m). Chỉ nằm trong t ∈ [0.50, 0.92].
+            static getChestRegionOffset(t, angle, m) {
+                if (!m.chestAll && !m.chestProj && !m.chestMid && !m.chestOuter && !m.chestLow) return 0.0;
+                if (t < 0.50 || t > 0.92) return 0.0;
+
+                const cosA = Math.cos(angle);
+                if (cosA <= 0.05) return 0.0;
+                const a = Math.abs(angle);
+
+                const wFront = this.smoothstep(0.05, 0.85, cosA);                 // tắt hẳn ra hai bên / sau lưng
+                const wCenter = 1.0 - this.smootherstep(0.55, 0.95, a);            // giữa ngực
+                const wOuter = this.smootherstep(0.35, 0.75, a)
+                    * (1.0 - this.smootherstep(1.15, 1.45, a));          // phần gần nách
+                const whole = this.smootherstep(0.50, 0.60, t)
+                    * (1.0 - this.smootherstep(0.85, 0.92, t));          // toàn vùng ngực
+
+                let d = 0.0;
+                d += (m.chestAll / 1000) * whole;
+                d += (m.chestProj / 100) * this.bump(t, 0.72, 0.90);
+                d += (m.chestMid / 1000) * this.bump(t, 0.62, 0.78) * wCenter;
+                d += (m.chestOuter / 1000) * this.bump(t, 0.56, 0.76) * wOuter;
+                d += (m.chestLow / 1000) * this.bump(t, 0.50, 0.64);
+
+                return THREE.MathUtils.clamp(d * wFront, -0.045, 0.045);
+            }
+
+
             static smoothstep(edge0, edge1, x) {
                 const t = THREE.MathUtils.clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
                 return t * t * (3.0 - 2.0 * t);
@@ -469,7 +1682,7 @@ window.onload=function(){o&&o();sync();};mq.addEventListener&&mq.addEventListene
                 else if (state.closure === 'db_6x2') baseBreakT = 0.450;
 
                 const breakT = THREE.MathUtils.clamp(baseBreakT - depthRatio * 0.65 - 0.035, 0.33, 0.58);
-const gorgeT = THREE.MathUtils.clamp(0.906 - ((state.gorgeHeight - 7.8) / state.jacketLength) * 0.35, 0.865, 0.930);
+                const gorgeT = THREE.MathUtils.clamp(0.906 - ((state.gorgeHeight - 7.8) / state.jacketLength) * 0.35, 0.865, 0.930);
 
                 const dbOverlapRad = 0.205 + (state.buttonEdgeOffset - 2.5) * 0.025;
                 const neckGorgeAngMag = 0.52;
@@ -503,11 +1716,16 @@ const gorgeT = THREE.MathUtils.clamp(0.906 - ((state.gorgeHeight - 7.8) / state.
                     neckGorgeAngMag,
                     tCross,
                     upperWaist: state.upperWaist ?? 0,
-lowerChest: state.lowerChest ?? 0,
-lowerWaist: state.lowerWaist ?? 0,
-lowHip: state.lowHip ?? 0,
-bodyCurve: state.bodyCurve ?? 1,
-chestProj: state.chestProjection ?? 0,
+                    lowerChest: state.lowerChest ?? 0,
+                    lowerWaist: state.lowerWaist ?? 0,
+                    lowHip: state.lowHip ?? 0,
+                    bodyCurve: state.bodyCurve ?? 1,
+                    chestProj: state.chestProjection ?? 0,
+                    midTorso: state.midTorso ?? 0,
+                    chestAll: state.chestAll ?? 0,
+                    chestMid: state.chestMid ?? 0,
+                    chestOuter: state.chestOuter ?? 0,
+                    chestLow: state.chestLow ?? 0,
                 };
             }
 
@@ -516,102 +1734,110 @@ chestProj: state.chestProjection ?? 0,
  * Bù theo "vùng đo" (cm vòng): ngực dưới, eo trên, bụng dưới, hông dưới.
  * 1 cm vòng ≈ +0.0022 m bề rộng mỗi bên và +0.0007 m độ sâu mỗi mặt (≈ +1 cm chu vi elip).
  */
-static getStationOffsets(u, m) {
-  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
-  const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);      // tắt hẳn ở nách
-  const RX = 0.0022, DZ = 0.0007;
-  let dRx = 0.0, dF = 0.0, dB = 0.0;
+            static getStationOffsets(u, m) {
+                const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+                const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);      // tắt hẳn ở nách
+                const RX = 0.0022, DZ = 0.0007;
+                let dRx = 0.0, dF = 0.0, dB = 0.0;
 
-  const add = (cm, c, s, f, b, useArm) => {
-    if (!cm) return;
-    const z = (u - c) / s;
-    const w = Math.exp(-z * z) * (useArm ? nearArm : 1.0);
-    dRx += cm * RX * w;
-    dF  += cm * DZ * f * w;
-    dB  += cm * DZ * b * w;
-  };
-  add(m.lowerChest, 0.620, 0.050, 1.0, 1.0, true);   // sườn dưới lồng ngực
-  add(m.upperWaist, 0.545, 0.050, 1.0, 1.0, true);   // giữa ngực – eo
-  add(m.lowerWaist, 0.330, 0.075, 1.4, 0.6, false);  // bụng dưới (thiên về mặt trước)
-  add(m.lowHip,     0.090, 0.085, 0.6, 1.4, false);  // mông (thiên về mặt sau)
-  return { dRx, dF, dB };
-}
+                const add = (cm, c, s, f, b, useArm) => {
+                    if (!cm) return;
+                    const z = (u - c) / s;
+                    const w = Math.exp(-z * z) * (useArm ? nearArm : 1.0);
+                    dRx += cm * RX * w;
+                    dF += cm * DZ * f * w;
+                    dB += cm * DZ * b * w;
+                };
+                add(m.lowerChest, 0.620, 0.050, 1.0, 1.0, true);
+                add(m.upperWaist, 0.545, 0.050, 1.0, 1.0, true);
+                add(m.lowerWaist, 0.330, 0.075, 1.4, 0.6, false);
+                add(m.lowHip, 0.090, 0.085, 0.6, 1.4, false);
 
-
-/**
- * Nửa bề rộng thân (chính diện). u: 0 = gấu -> 1 = ngang vai.
- * Nền đơn điệu hông -> ngực, cộng các nét cong mềm (Gaussian rộng), tất cả tắt hẳn ở nách.
- *  - bodyCurve : 1.0 = chuẩn; 0 = sườn thẳng; >1 = eo sâu hơn, sườn ngực dưới và hông tròn hơn.
- *  - upperWaist: cm vòng, dương = đoạn giữa ngực–eo đầy hơn, âm = thon hơn.
- */
-static getSideRx(u, m, targetShoulderRx) {
-  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
-  const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
-  const k = m.bodyCurve;
-  const extra = Math.max(0.0, k - 1.0);
-
-  const hipRx   = 0.176 * m.hipScale;
-  const waistRx = 0.160 * m.waistScale;
-  const chestRx = 0.170 * m.chestScale;                           // neo nách: không đổi
-
-  const baseAt = (x) => THREE.MathUtils.lerp(hipRx, chestRx, this.smootherstep(0.12, uA, x));
-  const waistDip = baseAt(0.48) - waistRx;
-  const win     = 1.0 - this.smootherstep(0.55, uA, u);
-  const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);
-
-  let lower = baseAt(u)
-            - k * waistDip * g(u, 0.48, 0.15) * win
-            + 0.0025 * g(u, 0.0, 0.07);
-
-  lower += extra * (0.0030 * g(u, 0.62, 0.07) * nearArm
-                  + 0.0030 * g(u, 0.12, 0.09));
-
-  lower += this.getStationOffsets(u, m).dRx;
-
-  const armpitToShoulder = this.smootherstep(0.68, 1.0, u);
-  return THREE.MathUtils.lerp(lower, targetShoulderRx, armpitToShoulder);
-}
+                // Độ phình thân giữa (mm, chủ yếu mặt trước, thêm 25% ở bề rộng để silhouette đi theo)
+                if (m.midTorso) {
+                    const z = (u - 0.58) / 0.075;
+                    const d = (m.midTorso / 1000) * Math.exp(-z * z) * nearArm;
+                    dF += d;
+                    dRx += 0.25 * d;
+                }
+                return { dRx, dF, dB };
+            }
 
 
-/**
- * Độ sâu trước/sau (nhìn ngang). u: 0 = gấu -> 1 = ngang vai.
- *  - bodyCurve nhân biên độ bụng, mông, ưỡn thắt lưng.
- *  - upperWaist cộng độ dày đoạn giữa ngực–eo (trước và sau như nhau).
- *  - chestProj (cm) cộng độ dày phía trước ở ngực trên, tắt hẳn trước cổ (u ≥ 0.97).
- */
-static getSideDepths(u, m) {
-  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
-  const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
-  const cs = m.chestScale, ws = m.waistScale, hs = m.hipScale;
-  const k = m.bodyCurve;
+            /**
+             * Nửa bề rộng thân (chính diện). u: 0 = gấu -> 1 = ngang vai.
+             * Nền đơn điệu hông -> ngực, cộng các nét cong mềm (Gaussian rộng), tất cả tắt hẳn ở nách.
+             *  - bodyCurve : 1.0 = chuẩn; 0 = sườn thẳng; >1 = eo sâu hơn, sườn ngực dưới và hông tròn hơn.
+             *  - upperWaist: cm vòng, dương = đoạn giữa ngực–eo đầy hơn, âm = thon hơn.
+             */
+            static getSideRx(u, m, targetShoulderRx) {
+                const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+                const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
+                const k = m.bodyCurve;
+                const extra = Math.max(0.0, k - 1.0);
 
-  const chestRzF = 0.125 * cs;
-  const upperRzB = 0.112 * cs;
-  const win = 1.0 - this.smootherstep(0.50, uA, u);
+                const hipRx = 0.176 * m.hipScale;
+                const waistRx = 0.160 * m.waistScale;
+                const chestRx = 0.170 * m.chestScale;                           // neo nách: không đổi
 
-  const frontHip = 0.108 * (0.4 * hs + 0.6 * ws);
-  let frontLower = THREE.MathUtils.lerp(frontHip, chestRzF, this.smootherstep(0.28, uA, u))
-                 + k * 0.005 * ws * g(u, 0.33, 0.13) * win;
+                const baseAt = (x) => THREE.MathUtils.lerp(hipRx, chestRx, this.smootherstep(0.12, uA, x));
+                const waistDip = baseAt(0.48) - waistRx;
+                const win = 1.0 - this.smootherstep(0.55, uA, u);
+                const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);
 
-  const backHip = 0.112 * hs;
-  let backLower = THREE.MathUtils.lerp(backHip, upperRzB, this.smootherstep(0.20, uA, u))
-                + k * 0.004 * g(u, 0.06, 0.13) * win
-                - k * 0.012 * ws * g(u, 0.43, 0.12) * win;
+                let lower = baseAt(u)
+                    - k * waistDip * g(u, 0.48, 0.15) * win
+                    + 0.0025 * g(u, 0.0, 0.07);
 
-  const st = this.getStationOffsets(u, m);
-  frontLower += st.dF;
-  backLower  += st.dB;
+                lower += extra * (0.0030 * g(u, 0.62, 0.07) * nearArm
+                    + 0.0030 * g(u, 0.12, 0.09));
 
-  const shoulderFall = this.smootherstep(0.74, 1.0, u);
-  let front = frontLower - 0.22 * shoulderFall * (chestRzF - 0.105 * ws);
-  const back = backLower - 0.14 * shoulderFall * (upperRzB - 0.100 * ws);
+                lower += this.getStationOffsets(u, m).dRx;
 
-  // Căng ngực trên: đỉnh ngay dưới xương đòn (u≈0.92), cm = độ dày thật phía trước.
-  // Không tắt ở u=1: phần còn lại tự tan về cổ nhờ cách vai pha trộn với vòng cổ.
-  front += (m.chestProj / 100) * g(u, 0.92, 0.065);
+                const armpitToShoulder = this.smootherstep(0.68, 1.0, u);
+                return THREE.MathUtils.lerp(lower, targetShoulderRx, armpitToShoulder);
+            }
 
-  return { front, back };
-}
+
+            /**
+             * Độ sâu trước/sau (nhìn ngang). u: 0 = gấu -> 1 = ngang vai.
+             *  - bodyCurve nhân biên độ bụng, mông, ưỡn thắt lưng.
+             *  - upperWaist cộng độ dày đoạn giữa ngực–eo (trước và sau như nhau).
+             *  - chestProj (cm) cộng độ dày phía trước ở ngực trên, tắt hẳn trước cổ (u ≥ 0.97).
+             */
+            static getSideDepths(u, m) {
+                const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+                const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
+                const cs = m.chestScale, ws = m.waistScale, hs = m.hipScale;
+                const k = m.bodyCurve;
+
+                const chestRzF = 0.125 * cs;
+                const upperRzB = 0.112 * cs;
+                const win = 1.0 - this.smootherstep(0.50, uA, u);
+
+                const frontHip = 0.108 * (0.4 * hs + 0.6 * ws);
+                let frontLower = THREE.MathUtils.lerp(frontHip, chestRzF, this.smootherstep(0.28, uA, u))
+                    + k * 0.005 * ws * g(u, 0.33, 0.13) * win;
+
+                const backHip = 0.112 * hs;
+                let backLower = THREE.MathUtils.lerp(backHip, upperRzB, this.smootherstep(0.20, uA, u))
+                    + k * 0.004 * g(u, 0.06, 0.13) * win
+                    - k * 0.012 * ws * g(u, 0.43, 0.12) * win;
+
+                const st = this.getStationOffsets(u, m);
+                frontLower += st.dF;
+                backLower += st.dB;
+
+                const shoulderFall = this.smootherstep(0.74, 1.0, u);
+                let front = frontLower - 0.22 * shoulderFall * (chestRzF - 0.105 * ws);
+                const back = backLower - 0.14 * shoulderFall * (upperRzB - 0.100 * ws);
+
+                // Căng ngực trên: đỉnh ngay dưới xương đòn (u≈0.92), cm = độ dày thật phía trước.
+                // Không tắt ở u=1: phần còn lại tự tan về cổ nhờ cách vai pha trộn với vòng cổ.
+                // front += (m.chestProj / 100) * g(u, 0.92, 0.065);
+
+                return { front, back };
+            }
 
             /**
              * Helper: Returns the lateral torso radius rx(t) at normalized height t in [0, 1]
@@ -628,8 +1854,8 @@ static getSideDepths(u, m) {
 
                 let rx;
                 if (t <= m.tShoulder) {
-  rx = this.getSideRx(t / m.tShoulder, m, targetShoulderRx);
-} else {
+                    rx = this.getSideRx(t / m.tShoulder, m, targetShoulderRx);
+                } else {
                     const uSh = (t - m.tShoulder) / (1.0 - m.tShoulder);
                     const sLinear = 0.72 * uSh + 0.28 * this.smoothstep(0.0, 1.0, uSh);
                     rx = THREE.MathUtils.lerp(targetShoulderRx, neckRingRx, sLinear);
@@ -747,80 +1973,80 @@ static getSideDepths(u, m) {
             }
 
 
-   /**
- * Độ sâu trước/sau (nhìn ngang). u: 0 = gấu -> 1 = ngang vai.
- *  - bodyCurve nhân biên độ bụng, mông, ưỡn thắt lưng.
- *  - upperWaist cộng độ dày đoạn giữa ngực–eo (trước và sau như nhau).
- *  - chestProj (cm) cộng độ dày phía trước ở ngực trên, tắt hẳn trước cổ (u ≥ 0.97).
- */
-static getSideDepths(u, m) {
-  const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
-  const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
-  const cs = m.chestScale, ws = m.waistScale, hs = m.hipScale;
-  const k = m.bodyCurve;
+            /**
+          * Độ sâu trước/sau (nhìn ngang). u: 0 = gấu -> 1 = ngang vai.
+          *  - bodyCurve nhân biên độ bụng, mông, ưỡn thắt lưng.
+          *  - upperWaist cộng độ dày đoạn giữa ngực–eo (trước và sau như nhau).
+          *  - chestProj (cm) cộng độ dày phía trước ở ngực trên, tắt hẳn trước cổ (u ≥ 0.97).
+          */
+            static getSideDepths(u, m) {
+                const uA = Math.max(0.66, m.tArmpit / m.tShoulder);
+                const g = (x, c, s) => Math.exp(-Math.pow((x - c) / s, 2));
+                const cs = m.chestScale, ws = m.waistScale, hs = m.hipScale;
+                const k = m.bodyCurve;
 
-  const chestRzF = 0.125 * cs;
-  const upperRzB = 0.112 * cs;
-  const win     = 1.0 - this.smootherstep(0.50, uA, u);
-  const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);
+                const chestRzF = 0.125 * cs;
+                const upperRzB = 0.112 * cs;
+                const win = 1.0 - this.smootherstep(0.50, uA, u);
+                const nearArm = 1.0 - this.smootherstep(uA - 0.10, uA, u);
 
-  // ---- Phía trước ----
-  const frontHip = 0.108 * (0.4 * hs + 0.6 * ws);
-  let frontLower = THREE.MathUtils.lerp(frontHip, chestRzF, this.smootherstep(0.28, uA, u))
-                 + k * 0.005 * ws * g(u, 0.33, 0.13) * win;     // bụng dưới
+                // ---- Phía trước ----
+                const frontHip = 0.108 * (0.4 * hs + 0.6 * ws);
+                let frontLower = THREE.MathUtils.lerp(frontHip, chestRzF, this.smootherstep(0.28, uA, u))
+                    + k * 0.005 * ws * g(u, 0.33, 0.13) * win;     // bụng dưới
 
-  // ---- Phía sau ----
-  const backHip = 0.112 * hs;
-  let backLower = THREE.MathUtils.lerp(backHip, upperRzB, this.smootherstep(0.20, uA, u))
-                + k * 0.004 * g(u, 0.06, 0.13) * win            // mông
-                - k * 0.012 * ws * g(u, 0.43, 0.12) * win;      // ưỡn thắt lưng
+                // ---- Phía sau ----
+                const backHip = 0.112 * hs;
+                let backLower = THREE.MathUtils.lerp(backHip, upperRzB, this.smootherstep(0.20, uA, u))
+                    + k * 0.004 * g(u, 0.06, 0.13) * win            // mông
+                    - k * 0.012 * ws * g(u, 0.43, 0.12) * win;      // ưỡn thắt lưng
 
-  // ---- Eo trên (độ dày): ~0.0007 m mỗi mặt cho mỗi cm vòng ----
-  const uw = m.upperWaist * 0.0007 * g(u, 0.585, 0.06) * nearArm;
-  frontLower += uw;
-  backLower  += uw;
+                // ---- Eo trên (độ dày): ~0.0007 m mỗi mặt cho mỗi cm vòng ----
+                const uw = m.upperWaist * 0.0007 * g(u, 0.585, 0.06) * nearArm;
+                frontLower += uw;
+                backLower += uw;
 
-  // ---- Nách -> vai: giữ nguyên hành vi cũ ----
-  const shoulderFall = this.smootherstep(0.74, 1.0, u);
-  let front = frontLower - 0.22 * shoulderFall * (chestRzF - 0.105 * ws);
-  const back = backLower - 0.14 * shoulderFall * (upperRzB - 0.100 * ws);
+                // ---- Nách -> vai: giữ nguyên hành vi cũ ----
+                const shoulderFall = this.smootherstep(0.74, 1.0, u);
+                let front = frontLower - 0.22 * shoulderFall * (chestRzF - 0.105 * ws);
+                const back = backLower - 0.14 * shoulderFall * (upperRzB - 0.100 * ws);
 
-  // ---- Độ nhô / căng ngực trên (cơ ngực): đỉnh quanh u≈0.76, tắt hẳn trước cổ ----
-  front += (m.chestProj / 100) * g(u, 0.76, 0.095)
-         * (1.0 - this.smootherstep(0.84, 0.97, u));
+                // ---- Độ nhô / căng ngực trên (cơ ngực): đỉnh quanh u≈0.76, tắt hẳn trước cổ ----
+                front += (m.chestProj / 100) * g(u, 0.76, 0.095)
+                    * (1.0 - this.smootherstep(0.84, 0.97, u));
 
-  return { front, back };
-}
+                return { front, back };
+            }
 
 
-/**
- * Nếp rủ vải nhẹ (tinh tế, trung bình = 0 nên không đổi phom/độ vừa vặn).
- * Dịch bề mặt theo hướng xuyên tâm tối đa ~1.4mm.
- * Chỉ hoạt động ở thân dưới/eo (dưới chân ve), tắt ở vai, nách, cổ, mép vạt trước và giữa lưng.
- */
-static getDrapeOffset(t, angle, m) {
-  const STRENGTH = 0.0024;                 // mét (đỉnh biên độ ≈ 2.4mm)
-  const a = Math.abs(angle);
+            /**
+             * Nếp rủ vải nhẹ (tinh tế, trung bình = 0 nên không đổi phom/độ vừa vặn).
+             * Dịch bề mặt theo hướng xuyên tâm tối đa ~1.4mm.
+             * Chỉ hoạt động ở thân dưới/eo (dưới chân ve), tắt ở vai, nách, cổ, mép vạt trước và giữa lưng.
+             */
+            static getDrapeOffset(t, angle, m) {
+                const STRENGTH = 0.0024;                 // mét (đỉnh biên độ ≈ 2.4mm)
+                const a = Math.abs(angle);
 
-  // Phía trước: dừng dưới chân ve. Hai bên sườn (ngoài bề rộng ve): kéo lên gần nách.
-  const tEndFront = m.breakT - 0.03;
-  const tEndSide  = m.tArmpit - 0.04;
-  const tEnd = THREE.MathUtils.lerp(tEndFront, tEndSide, this.smoothstep(0.95, 1.25, a));
+                // Phía trước: dừng dưới chân ve. Hai bên sườn (ngoài bề rộng ve): kéo lên gần nách.
+                const tEndFront = m.breakT - 0.03;
+                const tEndSide = m.tArmpit - 0.04;
+                const tEnd = THREE.MathUtils.lerp(tEndFront, tEndSide, this.smoothstep(0.95, 1.25, a));
 
-  const vEnv = (0.55 + 0.45 * this.smootherstep(0.0, 0.12, t))
-             * (1.0 - this.smootherstep(tEnd - 0.14, tEnd, t));
-  if (vEnv <= 0.0) return 0.0;
+                const vEnv = (0.55 + 0.45 * this.smootherstep(0.0, 0.12, t))
+                    * (1.0 - this.smootherstep(tEnd - 0.14, tEnd, t));
+                if (vEnv <= 0.0) return 0.0;
 
-  const aEnv = this.smoothstep(0.10, 0.45, a)
-             * (1.0 - this.smoothstep(Math.PI - 0.30, Math.PI - 0.04, a));
-  if (aEnv <= 0.0) return 0.0;
+                const aEnv = this.smoothstep(0.10, 0.45, a)
+                    * (1.0 - this.smoothstep(Math.PI - 0.30, Math.PI - 0.04, a));
+                if (aEnv <= 0.0) return 0.0;
 
-  // Nếp gần như thẳng đứng (tần số theo t thấp), hai họa âm lệch pha để không đều như sóng
-  const f1 = Math.cos(11.0 * a + 6.0 * t + 0.6) * (0.65 + 0.35 * Math.sin(2.3 * a + 1.0));
-  const f2 = Math.cos(17.0 * a - 4.5 * t + 2.1) * 0.4;
+                // Nếp gần như thẳng đứng (tần số theo t thấp), hai họa âm lệch pha để không đều như sóng
+                const f1 = Math.cos(11.0 * a + 6.0 * t + 0.6) * (0.65 + 0.35 * Math.sin(2.3 * a + 1.0));
+                const f2 = Math.cos(17.0 * a - 4.5 * t + 2.1) * 0.4;
 
-  return STRENGTH * vEnv * aEnv * (f1 + f2) / 1.4;
-}
+                return STRENGTH * vEnv * aEnv * (f1 + f2) / 1.4;
+            }
 
             /**
              * Core C2-Continuous Anatomical & Sartorial Torso Evaluator for t in [0, 1].
@@ -847,27 +2073,31 @@ static getDrapeOffset(t, angle, m) {
                 let rx, rzFront, rzBack;
 
                 if (t <= m.tShoulder) {
-  const u = t / m.tShoulder;
-  rx = this.getSideRx(u, m, targetShoulderRx);
+                    const u = t / m.tShoulder;
+                    rx = this.getSideRx(u, m, targetShoulderRx);
 
-  const sideDepth = this.getSideDepths(u, m);
-  rzFront = sideDepth.front;
-  rzBack = sideDepth.back;
-} else {
-  // Độ dốc vai (t từ tShoulder đến 1.0)
-  const uSh = (t - m.tShoulder) / (1.0 - m.tShoulder);
-  const sLinear = 0.72 * uSh + 0.28 * this.smoothstep(0.0, 1.0, uSh);
-  const sFront = this.smootherstep(0.0, 1.0, uSh);
+                    const sideDepth = this.getSideDepths(u, m);
+                    rzFront = sideDepth.front;
+                    rzBack = sideDepth.back;
+                } else {
+                    // Độ dốc vai (t từ tShoulder đến 1.0)
+                    const uSh = (t - m.tShoulder) / (1.0 - m.tShoulder);
+                    const sLinear = 0.72 * uSh + 0.28 * this.smoothstep(0.0, 1.0, uSh);
+                    const sFront = this.smootherstep(0.0, 1.0, uSh);
 
-  const topDepth = this.getSideDepths(1.0, m);
-  rx = THREE.MathUtils.lerp(targetShoulderRx, neckRingRx, sLinear);
-  rzFront = THREE.MathUtils.lerp(topDepth.front, neckRingRzF, Math.pow(sFront, 1.12));
-  rzBack = THREE.MathUtils.lerp(topDepth.back, neckRingRzB, sFront);
-}
+                    const topDepth = this.getSideDepths(1.0, m);
+                    rx = THREE.MathUtils.lerp(targetShoulderRx, neckRingRx, sLinear);
+                    rzFront = THREE.MathUtils.lerp(topDepth.front, neckRingRzF, Math.pow(sFront, 1.12));
+                    rzBack = THREE.MathUtils.lerp(topDepth.back, neckRingRzB, sFront);
+                }
 
                 rx += baseEase;
                 rzFront += baseEase * 0.92;
-                rzBack += baseEase * 0.88;
+
+
+                // Căng ngực trên: nhô phía trước ngay dưới xương đòn / dưới mũi ve (t ≈ 0.81).
+                // Tính trực tiếp theo t nên phủ cả đoạn thân lẫn đoạn dốc vai; tắt hẳn trước chân cổ.
+                rzFront += this.getChestRegionOffset(t, angle, m);
 
                 // Broad, natural masculine chest & back cross-section
                 const torsoBroadEnv = this.smoothstep(0.15, 0.65, t) * (1.0 - 0.80 * this.smoothstep(m.tShoulder, 1.0, t));
@@ -891,11 +2121,11 @@ static getDrapeOffset(t, angle, m) {
                 z += Math.sin(t * Math.PI * 0.88) * 0.009;
 
                 // Nếp rủ vải nhẹ chỉ cho lớp áo vest
-if (isSuitShell) {
-  const dr = this.getDrapeOffset(t, angle, m);
-  x += sinA * dr;
-  z += cosA * dr;
-}
+                if (isSuitShell) {
+                    const dr = this.getDrapeOffset(t, angle, m);
+                    x += sinA * dr;
+                    z += cosA * dr;
+                }
 
                 // Vertical Coordinate Y:
                 // Taut, linear shoulder slope from neckBaseY down to shoulderY at the armhole seam
@@ -1008,12 +2238,12 @@ if (isSuitShell) {
                 if (t <= m.breakT - 0.025) return rollAng;
                 // Thân áo chỉ lùi ra theo đúng bề rộng ve đang có: chân ve hẹp thì lùi rất ít
                 const uFoot = this.smoothstep(m.breakT - 0.025, m.breakT + 0.045, t);
-const uBlade = this.smootherstep(m.breakT + 0.05, m.gorgeT - 0.02, t);
-// Độ thụt chỉ tồn tại dưới bản ve (bị che), tắt hẳn trước khi tới Gorge:
-// phía trên Gorge mép thân nằm đúng trên đường bẻ ve thẳng.
-const uClose = 1.0 - this.smootherstep(m.gorgeT - 0.075, m.gorgeT - 0.015, t);
-const tuckUnderLapel = (0.010 * uFoot + 0.040 * uBlade) * uClose;
-return rollAng + sideSign * tuckUnderLapel;
+                const uBlade = this.smootherstep(m.breakT + 0.05, m.gorgeT - 0.02, t);
+                // Độ thụt chỉ tồn tại dưới bản ve (bị che), tắt hẳn trước khi tới Gorge:
+                // phía trên Gorge mép thân nằm đúng trên đường bẻ ve thẳng.
+                const uClose = 1.0 - this.smootherstep(m.gorgeT - 0.075, m.gorgeT - 0.015, t);
+                const tuckUnderLapel = (0.010 * uFoot + 0.040 * uBlade) * uClose;
+                return rollAng + sideSign * tuckUnderLapel;
             }
 
             /**
@@ -1041,6 +2271,8 @@ return rollAng + sideSign * tuckUnderLapel;
          * ============================================================================
          */
         class BespokeSuitGeometryBuilder {
+
+
             static smoothstep(edge0, edge1, x) {
                 return AnatomicalSurfaceEngine.smoothstep(edge0, edge1, x);
             }
@@ -1244,8 +2476,8 @@ return rollAng + sideSign * tuckUnderLapel;
                             const cosT = Math.cos(theta);
 
                             const frontPointProfile = cosT > 0
-                            ? Math.max(0, 1.0 - Math.abs(Math.sin(theta)) / 0.97)   // tuyến tính theo x chính diện => mép dưới là đường chéo thẳng
-                            : 0;
+                                ? Math.max(0, 1.0 - Math.abs(Math.sin(theta)) / 0.97)   // tuyến tính theo x chính diện => mép dưới là đường chéo thẳng
+                                : 0;
 
                             const sTop = 0.902;
                             const sBot = THREE.MathUtils.lerp(0.835, 0.778, frontPointProfile);
@@ -1383,8 +2615,7 @@ return rollAng + sideSign * tuckUnderLapel;
                         // Side seam & Armhole Scye boundary angle
                         let angSide;
                         if (t <= m.tArmpit) {
-                            const ventSlit = (state.vent === 'double' && t < 0.26) ? 0.012 : 0.0;
-                            angSide = sideSign * (Math.PI * 0.52 - ventSlit);
+                            angSide = sideSign * (Math.PI * 0.52);
                         } else if (t < m.tShoulder) {
                             const uScye = (t - m.tArmpit) / (m.tShoulder - m.tArmpit);
                             const scyeIndent = Math.sin(uScye * Math.PI) * 0.085;
@@ -1479,73 +2710,186 @@ return rollAng + sideSign * tuckUnderLapel;
                 });
 
                 // B. Sculpted Back Panels & Vent System (Side Vents, Center Vent, or Ventless)
-                [1, -1].forEach((sideSign) => {
-                    const bOutGrid = [];
-                    const bInGrid = [];
-                    const bUvGrid = [];
+                {
+                    const ventType = state.vent;
+                    const isDouble = ventType === 'double';
+                    // Xẻ 2 bên dùng đúng thông số của xẻ giữa
+                    const ventHeightM = 0.24;
+                    const tVent = THREE.MathUtils.clamp(ventHeightM / m.lenM, 0.20, 0.42);
 
-                    for (let r = 0; r <= rows; r++) {
-                        const t = r / rows;
+                    // 1 ở gấu -> 0 ở đỉnh xẻ, thon dần mềm (giống xẻ giữa)
+                    const ventEnv = (t) => {
+                        if (ventType !== 'double' && ventType !== 'center') return 0.0;
+                        const v = THREE.MathUtils.clamp(t / tVent, 0.0, 1.0);
+                        return Math.pow(1.0 - this.smoothstep(0.0, 1.0, v), 1.25);
+                    };
 
-                        let angSide;
+                    // Nửa bề rộng khe (rad), loe nhẹ ở gấu (giống xẻ giữa)
+                    const ventHalfGap = (t) => {
+                        const v = THREE.MathUtils.clamp(t / tVent, 0.0, 1.0);
+                        return 0.016 * ventEnv(t) * (1.0 + 0.30 * Math.pow(1.0 - v, 3.0));
+                    };
+
+                    // Vị trí xẻ 2 bên: dạt từ giữa lưng sang hai bên (π = giữa lưng, 0.5π = sườn)
+                    const SIDE_VENT_ANG = Math.PI * 0.76;
+
+                    const backSideAng = (sideSign, t) => {
                         if (t <= m.tArmpit) {
-                            const ventSlit = (state.vent === 'double' && t < 0.26) ? 0.014 : 0.0;
-                            angSide = sideSign * (Math.PI * 0.52 + ventSlit);
+                            return sideSign * (Math.PI * 0.52);
                         } else if (t < m.tShoulder) {
                             const uScye = (t - m.tArmpit) / (m.tShoulder - m.tArmpit);
                             const scyeIndent = Math.sin(uScye * Math.PI) * 0.055;
-                            angSide = sideSign * (Math.PI * 0.50 + scyeIndent);
-                        } else {
-                            angSide = sideSign * Math.PI * 0.50;
+                            return sideSign * (Math.PI * 0.50 + scyeIndent);
                         }
+                        return sideSign * Math.PI * 0.50;
+                    };
 
-                        const centerSlit = (state.vent === 'center' && t < 0.26) ? 0.016 : 0.0;
-                        const angBackCenter = sideSign * (Math.PI - centerSlit);
+                    // role: 'S' = nguyên tấm
+                    //       'C' = xẻ giữa
+                    //       'A' = mảnh phía sườn của xẻ 2 bên (mép xẻ ở u = 1)
+                    //       'B' = mảnh phía giữa lưng của xẻ 2 bên (mép xẻ ở u = 0)
+                    // nCols    : số cột của mảnh (mặc định = cols)
+                    // midAngFn : nếu có, cột giữa (u = 0.5) được ghim đúng vào góc này -> các đỉnh
+                    //            lưới của mảnh trên trùng khớp từng đỉnh với mảnh A và B bên dưới
+                    // seamRow  : 'first' | 'last' | null — hàng nằm trên đường nối ngang ở đỉnh tà,
+                    //            ép pháp tuyến theo bề mặt giải tích để hai mesh không lệch shading
+                    const buildBackPiece = (sideSign, angStartFn, angEndFn, role, tStart = 0.0, tEnd = 1.0,
+                        nRows = rows, nCols = cols, midAngFn = null, seamRow = null) => {
+                        const bOutGrid = [];
+                        const bInGrid = [];
+                        const bUvGrid = [];
+                        const bNrmGrid = [];
+                        const edgeFrac = (role === 'C' || role === 'A' || role === 'B') ? 0.15 : 0.35;
+                        const liftFrac = 0.10;
 
-                        const rowOut = [];
-                        const rowIn = [];
-                        const rowUv = [];
+                        for (let r = 0; r <= nRows; r++) {
+                            const t = THREE.MathUtils.lerp(tStart, tEnd, r / nRows);
+                            const angStart = angStartFn(t);
+                            const angEnd = angEndFn(t);
+                            const angMid = midAngFn ? midAngFn(t) : 0.0;
+                            const env = ventEnv(t);
 
-                        for (let c = 0; c <= cols; c++) {
-                            const u = c / cols;
-                            const angle = THREE.MathUtils.lerp(angSide, angBackCenter, u);
+                            const rowOut = [];
+                            const rowIn = [];
+                            const rowUv = [];
+                            const rowNrm = [];
 
-                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, angle, state, true, 0);
-                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, angle, state, true, 0);
+                            for (let c = 0; c <= nCols; c++) {
+                                const u = c / nCols;
+                                let angle;
+                                if (midAngFn) {
+                                    angle = (u <= 0.5)
+                                        ? THREE.MathUtils.lerp(angStart, angMid, u * 2.0)
+                                        : THREE.MathUtils.lerp(angMid, angEnd, (u - 0.5) * 2.0);
+                                } else {
+                                    angle = THREE.MathUtils.lerp(angStart, angEnd, u);
+                                }
 
-                            const ventLift = (state.vent === 'center' && t < 0.26 && sideSign > 0 && u > 0.82) ? 0.0016 : 0.0;
-                            const neckRimTaper = 1.0 - 0.55 * this.smoothstep(0.90, 1.0, t);
+                                const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, angle, state, true, 0);
+                                const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, angle, state, true, 0);
 
-                            const pOut = p.clone().addScaledVector(n, 0.0022 * neckRimTaper + ventLift);
-                            const pIn = p.clone().addScaledVector(n, 0.0004 + ventLift);
+                                // Chồng vạt mềm: một bên nhô, một bên lùi, mờ dần về 0 ở đỉnh xẻ
+                                let ventOff = 0.0;
+                                let hemLift = 0.0;
+                                if (env > 0.0) {
+                                    if (role === 'C' || role === 'A') {
+                                        const e = this.smoothstep(1.0 - edgeFrac, 1.0, u);
+                                        ventOff = (sideSign > 0 ? 0.0016 : -0.0010) * env * e;
+                                        hemLift = this.smoothstep(1.0 - liftFrac, 1.0, u);
+                                    } else if (role === 'B') {
+                                        const e = 1.0 - this.smoothstep(0.0, edgeFrac, u);
+                                        ventOff = (sideSign > 0 ? -0.0010 : 0.0016) * env * e;
+                                        hemLift = 1.0 - this.smoothstep(0.0, liftFrac, u);
+                                    }
+                                }
+                                // Bo cong nhẹ góc gấu cạnh đường xẻ
+                                const hemRound = 0.0035 * hemLift * (1.0 - this.smoothstep(0.0, 0.04, t));
 
-                            if (c === cols && (state.vent !== 'center' || t >= 0.26)) {
-                                pOut.x = 0;
-                                pIn.x = 0;
+                                const neckRimTaper = 1.0 - 0.55 * this.smoothstep(0.90, 1.0, t);
+
+                                const pOut = p.clone().addScaledVector(n, 0.0022 * neckRimTaper + ventOff);
+                                const pIn = p.clone().addScaledVector(n, 0.0004 + ventOff);
+                                pOut.y += hemRound;
+                                pIn.y += hemRound;
+
+                                // Đường giữa lưng: khép kín, trừ đoạn xẻ giữa
+                                const closeCenter = (c === nCols) &&
+                                    (role === 'B' || role === 'S' || (role === 'C' && env <= 0.0));
+                                if (closeCenter) {
+                                    pOut.x = 0;
+                                    pIn.x = 0;
+                                }
+
+                                rowOut.push(pOut);
+                                rowIn.push(pIn);
+                                rowUv.push(new THREE.Vector2(p.x * 2.2, t * 2.4));
+                                rowNrm.push(n);
                             }
 
-                            rowOut.push(pOut);
-                            rowIn.push(pIn);
-                            rowUv.push(new THREE.Vector2(p.x * 2.2, t * 2.4));
+                            if (sideSign < 0) {
+                                rowOut.reverse();
+                                rowIn.reverse();
+                                rowUv.reverse();
+                                rowNrm.reverse();
+                            }
+
+                            bOutGrid.push(rowOut);
+                            bInGrid.push(rowIn);
+                            bUvGrid.push(rowUv);
+                            bNrmGrid.push(rowNrm);
                         }
 
-                        if (sideSign < 0) {
-                            rowOut.reverse();
-                            rowIn.reverse();
-                            rowUv.reverse();
+                        const backGeom = this.buildThickGridGeometry(bOutGrid, bInGrid, bUvGrid);
+
+                        // Đồng nhất pháp tuyến tại đường nối ngang (đỉnh tà): các đỉnh ở hàng nối được
+                        // gán pháp tuyến giải tích của bề mặt, nên mảnh dưới và mảnh trên shading liền mạch.
+                        if (seamRow) {
+                            const W = nCols + 1;
+                            const outerCount = (nRows + 1) * W;
+                            const r = (seamRow === 'last') ? nRows : 0;
+                            const nAttr = backGeom.attributes.normal;
+                            for (let c = 0; c <= nCols; c++) {
+                                const nv = bNrmGrid[r][c];
+                                nAttr.setXYZ(r * W + c, nv.x, nv.y, nv.z);
+                                nAttr.setXYZ(outerCount + r * W + c, -nv.x, -nv.y, -nv.z);
+                            }
+                            nAttr.needsUpdate = true;
                         }
 
-                        bOutGrid.push(rowOut);
-                        bInGrid.push(rowIn);
-                        bUvGrid.push(rowUv);
-                    }
+                        const backMesh = new THREE.Mesh(backGeom, materials.suitOuter);
+                        backMesh.castShadow = true;
+                        backMesh.receiveShadow = true;
+                        group.add(backMesh);
+                    };
 
-                    const backGeom = this.buildThickGridGeometry(bOutGrid, bInGrid, bUvGrid);
-                    const backMesh = new THREE.Mesh(backGeom, materials.suitOuter);
-                    backMesh.castShadow = true;
-                    backMesh.receiveShadow = true;
-                    group.add(backMesh);
-                });
+                    [1, -1].forEach((sideSign) => {
+                        const sideFn = (t) => backSideAng(sideSign, t);
+
+                        if (isDouble) {
+                            // Phần dưới (gấu -> đỉnh xẻ): xẻ giữa "dạt" sang hai bên
+                            const nLow = Math.max(14, Math.round(rows * tVent));
+                            buildBackPiece(sideSign, sideFn,
+                                (t) => sideSign * (SIDE_VENT_ANG - ventHalfGap(t)), 'A', 0.0, tVent, nLow,
+                                cols, null, 'last');
+                            buildBackPiece(sideSign,
+                                (t) => sideSign * (SIDE_VENT_ANG + ventHalfGap(t)),
+                                () => sideSign * Math.PI, 'B', 0.0, tVent, nLow,
+                                cols, null, 'last');
+
+                            // Phần trên (đỉnh xẻ -> vai): một tấm liền. Dùng 2*cols cột và ghim cột giữa
+                            // đúng vào SIDE_VENT_ANG -> hàng đáy của tấm này trùng KHÍT từng đỉnh với
+                            // hàng đỉnh của A và B (không còn T-junction, không còn khe nứt/đường line ngang).
+                            const nUp = Math.max(10, rows - nLow);
+                            buildBackPiece(sideSign, sideFn, () => sideSign * Math.PI, 'S', tVent, 1.0, nUp,
+                                cols * 2, () => sideSign * SIDE_VENT_ANG, 'first');
+                        } else if (ventType === 'center') {
+                            buildBackPiece(sideSign, sideFn,
+                                (t) => sideSign * (Math.PI - ventHalfGap(t)), 'C');
+                        } else {
+                            buildBackPiece(sideSign, sideFn, () => sideSign * Math.PI, 'S');
+                        }
+                    });
+                }
 
                 return group;
             }
@@ -1579,26 +2923,26 @@ return rollAng + sideSign * tuckUnderLapel;
                 const rowsCollar = 52;
 
                 const applyNeckHugAndIncline = (p, u, angEval, amount, backExtraRise = 0.0, nrm = null) => {
-  const p0 = p.clone();
-  const neckProximity = Math.max(0.0, 1.0 - u);
-  const inclineProfile = 0.42 * neckProximity + 0.58 * Math.pow(neckProximity, 1.65);
-  p.y += amount * (0.0068 + backExtraRise) * inclineProfile;
+                    const p0 = p.clone();
+                    const neckProximity = Math.max(0.0, 1.0 - u);
+                    const inclineProfile = 0.42 * neckProximity + 0.58 * Math.pow(neckProximity, 1.65);
+                    p.y += amount * (0.0068 + backExtraRise) * inclineProfile;
 
-  const frontMask = this.smoothstep(0.30, 0.80, Math.cos(angEval));
-const hugStrength = amount * 0.68 * Math.pow(neckProximity, 1.35) * (1.0 - 0.85 * frontMask);
-  const cosA = Math.cos(angEval);
-  const sinA = Math.sin(angEval);
-  const targetX = sinA * 0.0558 * neckScale;
-  const targetZ = cosA * (cosA >= 0 ? 0.0568 : 0.0555) * neckScale + 0.004;
-  p.x = THREE.MathUtils.lerp(p.x, targetX, hugStrength);
-  p.z = THREE.MathUtils.lerp(p.z, targetZ, hugStrength * 0.75);
+                    const frontMask = this.smoothstep(0.30, 0.80, Math.cos(angEval));
+                    const hugStrength = amount * 0.68 * Math.pow(neckProximity, 1.35) * (1.0 - 0.85 * frontMask);
+                    const cosA = Math.cos(angEval);
+                    const sinA = Math.sin(angEval);
+                    const targetX = sinA * 0.0558 * neckScale;
+                    const targetZ = cosA * (cosA >= 0 ? 0.0568 : 0.0555) * neckScale + 0.004;
+                    p.x = THREE.MathUtils.lerp(p.x, targetX, hugStrength);
+                    p.z = THREE.MathUtils.lerp(p.z, targetZ, hugStrength * 0.75);
 
-  // Không cho điểm ve lún vào trong mặt thân: bù lại phần dịch ngược pháp tuyến
-  if (nrm) {
-    const inward = p0.sub(p).dot(nrm);
-    if (inward > 0) p.addScaledVector(nrm, inward);
-  }
-};
+                    // Không cho điểm ve lún vào trong mặt thân: bù lại phần dịch ngược pháp tuyến
+                    if (nrm) {
+                        const inward = p0.sub(p).dot(nrm);
+                        if (inward > 0) p.addScaledVector(nrm, inward);
+                    }
+                };
 
                 [1, -1].forEach((sideSign) => {
                     const startT = (m.isDB && sideSign < 0)
@@ -1725,7 +3069,7 @@ const hugStrength = amount * 0.68 * Math.pow(neckProximity, 1.35) * (1.0 - 0.85 
 
                         // Độ nâng ve: nhẹ ở chân ve, đủ ở phần thân ve, khớp hoàn toàn với bâu tại Gorge
                         const liftV = THREE.MathUtils.lerp(0.80, 1.0, this.smootherstep(0.0, 0.30, v));
-const plateauV = this.smootherstep(0.0, 0.20, v);
+                        const plateauV = this.smootherstep(0.0, 0.20, v);
                         const puffV = this.smootherstep(0.0, 0.22, v) * (1.0 - this.smootherstep(0.50, 1.0, v));
                         const wSeam = this.smootherstep(0.62, 1.0, v);
 
@@ -1763,21 +3107,21 @@ const plateauV = this.smootherstep(0.0, 0.20, v);
 
                             // Nếp cuốn mềm quanh đường bẻ ve: phồng nhẹ gần nút, về 0 ở mép trong, mép ngoài và đường nối
                             const plateauU = this.smoothstep(0.0, 0.10, u) * (1.0 - 0.30 * this.smoothstep(0.75, 1.0, u));
-const plateau = plateauAmp * plateauU * plateauV;     // nâng đều cả mảng ve
+                            const plateau = plateauAmp * plateauU * plateauV;     // nâng đều cả mảng ve
 
-const puffU = this.smoothstep(0.0, 0.26, u) * (1.0 - this.smoothstep(0.26, 0.82, u));
-const rollPuff = rollAmp * 0.55 * puffU * puffV;      // nếp cuốn gần nút, nhẹ hơn trước
+                            const puffU = this.smoothstep(0.0, 0.26, u) * (1.0 - this.smoothstep(0.26, 0.82, u));
+                            const rollPuff = rollAmp * 0.55 * puffU * puffV;      // nếp cuốn gần nút, nhẹ hơn trước
 
-let seamGroove = 0;
-if (c <= cShared && state.lapel !== 'shawl') {
-  const grooveEnv = this.smootherstep(0.92, 1.0, v);
-  const spanProfile = Math.sin((c / cShared) * Math.PI * 0.95);
-  seamGroove = grooveEnv * spanProfile * 0.0007;
-}
+                            let seamGroove = 0;
+                            if (c <= cShared && state.lapel !== 'shawl') {
+                                const grooveEnv = this.smootherstep(0.92, 1.0, v);
+                                const spanProfile = Math.sin((c / cShared) * Math.PI * 0.95);
+                                seamGroove = grooveEnv * spanProfile * 0.0007;
+                            }
 
-const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + dbUnderOffset + liftM * liftV + plateau + rollPuff;
-const baseLeafThick = THREE.MathUtils.lerp(0.0017, 0.0023, footEnv) * outerEdgeTaper;
-const topOffset = botOffset + baseLeafThick + flatCamber + rollPuff * 0.35 - seamGroove;
+                            const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + dbUnderOffset + liftM * liftV + plateau + rollPuff;
+                            const baseLeafThick = THREE.MathUtils.lerp(0.0017, 0.0023, footEnv) * outerEdgeTaper;
+                            const topOffset = botOffset + baseLeafThick + flatCamber + rollPuff * 0.35 - seamGroove;
 
                             rowI.push(p.clone().addScaledVector(n, botOffset));
                             rowO.push(p.clone().addScaledVector(n, topOffset));
@@ -1817,22 +3161,33 @@ const topOffset = botOffset + baseLeafThick + flatCamber + rollPuff * 0.35 - sea
                             let tEval, angEval;
                             if (vCol <= vShoulder) {
                                 const w1 = vCol / vShoulder;
-tEval = THREE.MathUtils.lerp(gStart.t, tShTarget, w1);
+                                tEval = THREE.MathUtils.lerp(gStart.t, tShTarget, w1);
 
-// Cột trong cùng (sát cổ) bám đường bẻ ve thẳng; các cột ngoài giữ độ loe bâu như cũ
-const xShRaw  = sideSign * AnatomicalSurfaceEngine.getTorsoRxAt(tShTarget, state, true) * 0.94;
-const xLineTop = sideSign * Math.abs(AnatomicalSurfaceEngine.getFrontRollX(tShTarget, sideSign, state));
-const lineBlend = 1.0 - this.smoothstep(0.0, 0.18, u);
-const xShTarget = THREE.MathUtils.lerp(
-  xShRaw,
-  sideSign * Math.min(Math.abs(xShRaw), Math.abs(xLineTop)),
-  lineBlend
-);
+                                // Cột trong cùng (sát cổ) bám đường bẻ ve thẳng; các cột ngoài giữ độ loe bâu như cũ
+                                const xShRaw = sideSign * AnatomicalSurfaceEngine.getTorsoRxAt(tShTarget, state, true) * 0.94;
+                                const xLineTop = sideSign * Math.abs(AnatomicalSurfaceEngine.getFrontRollX(tShTarget, sideSign, state));
+                                const lineBlend = 1.0 - this.smoothstep(0.0, 0.18, u);
+                                const xShTarget = THREE.MathUtils.lerp(
+                                    xShRaw,
+                                    sideSign * Math.min(Math.abs(xShRaw), Math.abs(xLineTop)),
+                                    lineBlend
+                                );
 
-const xLinear = THREE.MathUtils.lerp(gStart.x, xShTarget, w1);
-const angFromX = xToTorsoAngle(tEval, xLinear);
-// Chỉ quay ra vai ở đoạn cuối (khuất sau cổ), không còn lượn ra ngay trên Gorge
-angEval = THREE.MathUtils.lerp(angFromX, angShoulder, this.smoothstep(0.72, 1.0, w1));
+                                const xLinear = THREE.MathUtils.lerp(gStart.x, xShTarget, w1);
+                                const angFromX = xToTorsoAngle(tEval, xLinear);
+                                // Chỉ quay ra vai ở đoạn cuối (khuất sau cổ), không còn lượn ra ngay trên Gorge
+                                angEval = THREE.MathUtils.lerp(angFromX, angShoulder, this.smoothstep(0.72, 1.0, w1));
+
+                                // Mép ngoài đầu bâu: giữ đường thẳng liên tục tới điểm cổ–vai, không phình ra ngoài.
+                                // Phải đặt SAU dòng gán angEval ở trên để ghi đè đúng.
+                                const wEdge = this.smootherstep(0.58, 1.0, u);
+                                if (wEdge > 0.0) {
+                                    const rxEnd = AnatomicalSurfaceEngine.getTorsoRxAt(tShTarget, state, true);
+                                    const rxHere = AnatomicalSurfaceEngine.getTorsoRxAt(tEval, state, true);
+                                    const xStraight = THREE.MathUtils.lerp(Math.abs(gStart.x), rxEnd, w1);
+                                    const angStraight = sideSign * Math.asin(THREE.MathUtils.clamp(xStraight / rxHere, 0.0, 1.0));
+                                    angEval = THREE.MathUtils.lerp(angEval, angStraight, wEdge);
+                                }
                             } else {
                                 const w2 = (vCol - vShoulder) / (1.0 - vShoulder);
                                 tEval = THREE.MathUtils.lerp(tShTarget, tBackTarget, this.smoothstep(0.0, 1.0, w2));
@@ -1860,8 +3215,8 @@ angEval = THREE.MathUtils.lerp(angFromX, angShoulder, this.smoothstep(0.72, 1.0,
 
                             // Cùng độ nâng liftM như ve để hai phần liền mạch
                             const plateauUc = this.smoothstep(0.0, 0.10, u) * (1.0 - 0.30 * this.smoothstep(0.75, 1.0, u));
-const collarPlateau = plateauAmp * plateauUc * (1.0 - this.smootherstep(0.0, 0.5, vCol));
-const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + liftM + collarPlateau;
+                            const collarPlateau = plateauAmp * plateauUc * (1.0 - this.smootherstep(0.0, 0.5, vCol));
+                            const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + liftM + collarPlateau;
                             const leafThick = 0.0023 * outerEdgeTaper;
                             const topOffset = botOffset + leafThick + flatCamber - seamGroove;
 
@@ -1998,11 +3353,11 @@ const botOffset = THREE.MathUtils.lerp(0.0023, 0.0021, u) + liftM + collarPlatea
                             const sinT = Math.sin(theta);
 
                             // nếp rủ dọc tay rất nhẹ (~1mm), tắt ở nách và cổ tay
-const sleeveEnv = this.smootherstep(0.30, 0.46, s) * (1.0 - this.smootherstep(0.86, 0.97, s));
-const sleeveFold = 0.0010 * sleeveEnv * Math.cos(5.0 * theta + 9.0 * s + 0.8);
+                            const sleeveEnv = this.smootherstep(0.30, 0.46, s) * (1.0 - this.smootherstep(0.86, 0.97, s));
+                            const sleeveFold = 0.0010 * sleeveEnv * Math.cos(5.0 * theta + 9.0 * s + 0.8);
 
-const xMag = centerX + cosT * (radX + sleeveFold);
-const x = sideSign * xMag;
+                            const xMag = centerX + cosT * (radX + sleeveFold);
+                            const x = sideSign * xMag;
 
                             // Subtle crown dome lift at the very apex of the shoulder seam (s -> 0) so the cap rounds smoothly into the seam
                             const apexCrownLift = (1.0 - this.smoothstep(0.0, 0.08, s)) * Math.cos(sinT * Math.PI * 0.42) * 0.004;
@@ -2131,46 +3486,201 @@ const x = sideSign * xMag;
 
                 // C. Left Breast Barchetta Welt Pocket & Folded Silk Pocket Square
                 if (state.breastPocket) {
-                    const tBreast = 0.695;
-                    const angBreast = 0.52;
-                    const outG = [], inG = [], uvG = [];
-                    for (let r = 0; r <= 6; r++) {
-                        const v = r / 6;
-                        const rO = [], rI = [], rU = [];
-                        for (let c = 0; c <= 14; c++) {
-                            const u = c / 14;
-                            const boatSlant = (u - 0.5) * 0.022 + Math.sin(u * Math.PI) * 0.005;
-                            const t = tBreast + (v - 0.5) * 0.032 + boatSlant;
-                            const ang = angBreast + (u - 0.5) * 0.34;
-                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, true, 1);
-                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, true, 1);
-                            rO.push(p.clone().addScaledVector(n, 0.0038));
-                            rI.push(p.clone().addScaledVector(n, 0.0005));
-                            rU.push(new THREE.Vector2(u, v));
+                    const E = AnatomicalSurfaceEngine;
+                    const mb = E.getMetrics(state);
+                    const lerp = THREE.MathUtils.lerp;
+                    const clamp = THREE.MathUtils.clamp;
+
+                    const SIDE = 1;          // túi ngực bên trái người mặc (+x)
+                    const S0 = 0.0018;       // độ dày lớp vải ngoài của thân áo (khớp buildJacketBody)
+
+                    // ---- Hình học túi: đặt theo chiều cao thật, không theo t ----
+                    // Nâng tâm túi cao lên (~3.8 cm trên đáy nách) và dịch sang trái (về phía ve áo) cho chuẩn tỷ lệ ngực.
+                    const ANG_IN = 0.47;                 // dịch qua trái về phía ve áo (cũ: 0.52)
+                    const ANG_OUT = 0.99;                // dịch đồng bộ đầu ngoài để giữ nguyên chiều dài túi (cũ: 1.04)
+                    const WELT_H = 0.0185;               // chiều cao bản nẹp (~1.85 cm) rõ dáng túi chữ nhật
+                    const SLANT = 0.0138;                // độ xéo nhẹ ~8° hướng lên phía nách
+                    const pArm = E.evalTorsoBodySection(mb.tArmpit, Math.PI * 0.5, state, true, 0);
+                    const yC = pArm.y + 0.038;           // nâng vị trí túi cao lên (cũ: + 0.030)
+
+                    // Tìm t sao cho điểm trên bề mặt áo đạt đúng độ cao y tại góc ang
+                    const tAtY = (yT, ang) => {
+                        let t = 0.66;
+                        for (let k = 0; k < 2; k++) {
+                            const p0 = E.evalTorsoBodySection(t, ang, state, true, SIDE);
+                            const p1 = E.evalTorsoBodySection(t + 0.01, ang, state, true, SIDE);
+                            const d = (p1.y - p0.y) / 0.01;
+                            t += (yT - p0.y) / d;
                         }
-                        outG.push(rO);
-                        inG.push(rI);
-                        uvG.push(rU);
+                        return clamp(t, 0.45, 0.86);
+                    };
+
+                    // Đường viền túi hình chữ nhật sắc nét: hai cạnh trên/dưới song song theo góc xéo, hai đầu vuông vức
+                    const edgeInfo = (u) => {
+                        const sh = Math.sin(Math.PI * u);
+                        // Giữ 96-100% chiều cao ở tận hai đầu để tạo góc vuông hình chữ nhật rõ ràng
+                        const rectEnd = this.smoothstep(0.0, 0.035, u) * this.smoothstep(1.0, 0.965, u);
+                        const ang = lerp(ANG_IN, ANG_OUT, u);
+                        const yMid = yC + (u - 0.5) * SLANT;
+                        const half = 0.5 * WELT_H * (0.96 + 0.04 * rectEnd);
+                        // Độ võng cực nhẹ (~0.6mm) đồng bộ cả 2 mép để giữ nguyên hình chữ nhật khi ôm ngực
+                        const gentleCurve = 0.0006 * sh;
+                        return {
+                            u, sh, rectEnd, ang,
+                            yLo: yMid - half - gentleCurve,
+                            yHi: yMid + half - gentleCurve
+                        };
+                    };
+
+                    // ---- 1. Nẹp túi (welt): bản chữ nhật phẳng dẹp, chìm sát mặt áo (~0.32mm) ----
+                    {
+                        const NW = 40, RW = 12;
+                        const edges = [];
+                        for (let c = 0; c <= NW; c++) {
+                            const e = edgeInfo(c / NW);
+                            e.tLo = tAtY(e.yLo, e.ang);
+                            e.tHi = tAtY(e.yHi, e.ang);
+                            edges.push(e);
+                        }
+                        const outG = [], inG = [], uvG = [];
+                        for (let r = 0; r <= RW; r++) {
+                            const v = r / RW;
+                            const rO = [], rI = [], rU = [];
+                            // Mặt cắt dạng phẳng (plateau) thay vì phồng tròn hình ống, vát gọn ở 2 mép trên/dưới
+                            const vBevel = this.smoothstep(0.0, 0.12, v) * this.smoothstep(1.0, 0.88, v);
+                            const topSeam = 0.00005 * this.smoothstep(0.75, 0.92, v) * this.smoothstep(1.0, 0.92, v);
+
+                            for (let c = 0; c <= NW; c++) {
+                                const e = edges[c];
+                                const t = lerp(e.tLo, e.tHi, v);
+                                const p = E.evalTorsoBodySection(t, e.ang, state, true, SIDE);
+                                const n = E.evalTorsoNormal(t, e.ang, state, true, SIDE);
+
+                                // Hai cạnh đứng (u = 0, 1) vát sắc nét trong 4% biên để giữ khối chữ nhật phẳng
+                                const uBevel = 0.25 + 0.75 * e.rectEnd;
+                                const flatRelief = (0.00028 * vBevel + topSeam) * uBevel;
+
+                                rO.push(p.clone().addScaledVector(n, S0 + 0.00005 + flatRelief));
+                                rI.push(p.clone().addScaledVector(n, S0 - 0.00004));
+                                rU.push(new THREE.Vector2(c / NW, v));
+                            }
+                            outG.push(rO); inG.push(rI); uvG.push(rU);
+                        }
+                        const weltMesh = new THREE.Mesh(this.buildThickGridGeometry(outG, inG, uvG), materials.suitOuter);
+                        weltMesh.castShadow = true;
+                        weltMesh.receiveShadow = true;
+                        group.add(weltMesh);
                     }
-                    const breastMesh = new THREE.Mesh(this.buildThickGridGeometry(outG, inG, uvG), materials.suitOuter);
-                    breastMesh.castShadow = true;
-                    group.add(breastMesh);
 
-                    if (state.pocketSquare) {
-                        const pBase = AnatomicalSurfaceEngine.evalTorsoBodySection(tBreast + 0.016, angBreast, state, true, 1);
-                        const nBase = AnatomicalSurfaceEngine.evalTorsoNormal(tBreast + 0.016, angBreast, state, true, 1);
-
-                        for (let f = -1; f <= 1; f++) {
-                            const coneGeom = new THREE.ConeGeometry(0.015, 0.036, 12);
-                            coneGeom.scale(1.0, 1.0, 0.32);
-                            const foldMesh = new THREE.Mesh(coneGeom, materials.pocketSquare);
-                            foldMesh.position.copy(pBase).addScaledVector(nBase, 0.0024);
-                            foldMesh.position.x += f * 0.012;
-                            foldMesh.position.y += 0.014 + (1 - Math.abs(f)) * 0.005;
-                            foldMesh.rotation.z = -f * 0.22 - 0.08;
-                            foldMesh.rotation.x = 0.22;
-                            group.add(foldMesh);
+                    // ---- 2. Miệng túi: đường khe tối phẳng, chạy thẳng suốt chiều ngang miệng túi chữ nhật ----
+                    {
+                        if (!materials.pocketMouth) {
+                            materials.pocketMouth = new THREE.MeshStandardMaterial({
+                                color: 0x07080b, roughness: 1.0, metalness: 0.0, side: THREE.DoubleSide
+                            });
                         }
+                        const NM = 32, RM = 3;
+                        const cols = [];
+                        for (let c = 0; c <= NM; c++) {
+                            const e = edgeInfo(lerp(0.02, 0.98, c / NM));
+                            const mouthH = 0.0014 * (0.85 + 0.15 * e.sh) * e.rectEnd;
+                            cols.push({
+                                e,
+                                tA: tAtY(e.yHi - 0.0003, e.ang),
+                                tB: tAtY(e.yHi + mouthH, e.ang)
+                            });
+                        }
+                        const outG = [], inG = [], uvG = [];
+                        for (let r = 0; r <= RM; r++) {
+                            const v = r / RM;
+                            const rO = [], rI = [], rU = [];
+                            for (let c = 0; c <= NM; c++) {
+                                const col = cols[c];
+                                const t = lerp(col.tA, col.tB, v);
+                                const p = E.evalTorsoBodySection(t, col.e.ang, state, true, SIDE);
+                                const n = E.evalTorsoNormal(t, col.e.ang, state, true, SIDE);
+                                rO.push(p.clone().addScaledVector(n, S0 + 0.00006));
+                                rI.push(p.clone().addScaledVector(n, S0 - 0.00004));
+                                rU.push(new THREE.Vector2(c / NM, v));
+                            }
+                            outG.push(rO); inG.push(rI); uvG.push(rU);
+                        }
+                        const mouthMesh = new THREE.Mesh(this.buildThickGridGeometry(outG, inG, uvG), materials.pocketMouth);
+                        group.add(mouthMesh);
+                    }
+
+                    // ---- 3. Khăn túi ngực: tự động đi theo vị trí túi mới ----
+                    if (state.pocketSquare) {
+                        const buildCloth = (uA, uB, heightFn, leanK, backOff, nCols, nRows) => {
+                            const cols = [];
+                            for (let c = 0; c <= nCols; c++) {
+                                const w = c / nCols;
+                                const e = edgeInfo(lerp(uA, uB, w));
+                                const t0 = tAtY(e.yHi + 0.0002, e.ang);
+                                const pB = E.evalTorsoBodySection(t0, e.ang, state, true, SIDE);
+                                const nB = E.evalTorsoNormal(t0, e.ang, state, true, SIDE);
+                                const p1 = E.evalTorsoBodySection(t0 + 0.01, e.ang, state, true, SIDE);
+                                const up = p1.clone().sub(pB).normalize();
+                                cols.push({ w, e, pB, nB, up, H: heightFn(w) });
+                            }
+
+                            const outG = [], inG = [], uvG = [];
+                            for (let r = 0; r <= nRows; r++) {
+                                const v = r / nRows;
+                                const rO = [], rI = [], rU = [];
+                                for (let c = 0; c <= nCols; c++) {
+                                    const col = cols[c];
+                                    const s = -0.0030 + v * (col.H + 0.0030);      // độ cao so với miệng túi
+                                    const sPos = Math.max(s, 0.0);
+                                    const hv = clamp(sPos / col.H, 0.0, 1.0);
+                                    const k = clamp(sPos / 0.025, 0.0, 1.2);
+
+                                    const edgeSpan = Math.sin(Math.PI * col.w);
+                                    const rectSpan = this.smoothstep(0.0, 0.06, col.w) * this.smoothstep(1.0, 0.94, col.w);
+
+                                    // Nằm dẹp sát bề mặt ngực, chỉ nhô cực nhẹ (~0.4mm) để tránh z-fighting với thân áo
+                                    const emerge = this.smoothstep(-0.0025, 0.0020, s);
+                                    const lean = leanK * k * (0.85 + 0.15 * edgeSpan);
+                                    const puff = 0.00014 * rectSpan * Math.sin(Math.PI * hv);
+                                    const subtleWave = 0.00008 * Math.sin(col.w * Math.PI * 2.0 + 0.4)
+                                        * this.smoothstep(0.15, 0.70, hv) * rectSpan;
+
+                                    const off = S0 + 0.00010 + 0.00018 * emerge
+                                        + lean + puff + subtleWave + backOff;
+
+                                    // Độ dày lá vải siêu mỏng (~0.25mm), vát mép gọn gàng
+                                    const thick = 0.00025 * (0.45 + 0.55 * rectSpan) * (1.0 - 0.45 * this.smoothstep(0.80, 1.0, hv));
+
+                                    const base = col.pB.clone().addScaledVector(col.up, s);
+                                    rO.push(base.clone().addScaledVector(col.nB, off));
+                                    rI.push(base.clone().addScaledVector(col.nB, off - thick));
+                                    rU.push(new THREE.Vector2(col.w, v));
+                                }
+                                outG.push(rO); inG.push(rI); uvG.push(rU);
+                            }
+                            const mesh = new THREE.Mesh(this.buildThickGridGeometry(outG, inG, uvG), materials.pocketSquare);
+                            mesh.castShadow = true;
+                            mesh.receiveShadow = true;
+                            group.add(mesh);
+                        };
+
+                        // Lớp sau: nếp gấp mảnh nằm sát ngay sau lớp trước (lùi -0.28mm)
+                        buildCloth(0.14, 0.86,
+                            (w) => {
+                                const endTrim = this.smoothstep(0.0, 0.05, w) * this.smoothstep(1.0, 0.95, w);
+                                const h = 0.0150 + 0.0100 * Math.pow(w, 0.85) * (1.0 - 0.25 * this.smoothstep(0.78, 1.0, w));
+                                return h * (0.88 + 0.12 * endTrim);
+                            },
+                            0.00018, -0.00028, 32, 18);
+
+                        // Lớp trước: TV-fold chạy song song với mép túi xéo, hai góc vuông bo nhẹ ở biên
+                        buildCloth(0.06, 0.94,
+                            (w) => {
+                                const squareCorner = 0.86 + 0.14 * this.smoothstep(0.0, 0.06, w) * this.smoothstep(1.0, 0.94, w);
+                                const topLine = 0.0165 + 0.0005 * Math.sin(w * Math.PI * 2.0 + 0.3) + (w - 0.5) * 0.0005;
+                                return topLine * squareCorner;
+                            },
+                            0.00025, 0.0, 32, 18);
                     }
                 }
 
@@ -2387,6 +3897,7 @@ const x = sideSign * xMag;
                 this.initUI();
                 this.initThreeScene();
                 this.initMaterials();
+                this.initMarker();
                 this.rebuildSuitModel();
                 this.syncHandStitchUI();
                 this.animateLoop();
@@ -2426,44 +3937,45 @@ const x = sideSign * xMag;
             }
 
             measureRingCm(t, isShell) {
-  const N = 144;
-  let sum = 0, prev = null;
-  for (let i = 0; i <= N; i++) {
-    const ang = -Math.PI + (i / N) * 2 * Math.PI;
-    const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, this.state, isShell, 0);
-    if (prev) sum += Math.hypot(p.x - prev.x, p.z - prev.z);
-    prev = p;
-  }
-  return sum * 100;
-}
+                const N = 144;
+                let sum = 0, prev = null;
+                for (let i = 0; i <= N; i++) {
+                    const ang = -Math.PI + (i / N) * 2 * Math.PI;
+                    const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, this.state, isShell, 0);
+                    if (prev) sum += Math.hypot(p.x - prev.x, p.z - prev.z);
+                    prev = p;
+                }
+                return sum * 100;
+            }
 
-updateMeasureReadout() {
-  const box = document.getElementById('measure-readout');
-  if (!box) return;
-  const m = AnatomicalSurfaceEngine.getMetrics(this.state);
-  const rows = [
-    { name: 'Ngực trên',  u: 0.93,  target: null },
-    { name: 'Ngực (đầy nhất)', u: 0.665, target: this.state.chest },
-    { name: 'Ngực dưới / sườn', u: 0.60, target: null },
-    { name: 'Eo trên',    u: 0.545, target: null },
-    { name: 'Eo tự nhiên', u: 0.48, target: this.state.waist },
-    { name: 'Bụng dưới',  u: 0.33,  target: null },
-    { name: 'Hông trên',  u: 0.14,  target: this.state.hip }
-  ];
-  let html = `<div class="grid grid-cols-4 px-2.5 py-1 text-[10px] text-gray-500 border-b border-white/5">
+            updateMeasureReadout() {
+                const box = document.getElementById('measure-readout');
+                if (!box) return;
+                const m = AnatomicalSurfaceEngine.getMetrics(this.state);
+                const rows = [
+                    { name: 'Ngực trên', u: 0.985, target: null },
+                    { name: 'Ngực (ngang nách)', u: 0.69, target: this.state.chest },
+                    { name: 'Ngực dưới / sườn', u: 0.62, target: null },
+                    { name: 'Giữa ngực–eo', u: 0.58, target: null },
+                    { name: 'Eo trên', u: 0.545, target: null },
+                    { name: 'Eo tự nhiên', u: 0.48, target: this.state.waist },
+                    { name: 'Bụng dưới', u: 0.33, target: null },
+                    { name: 'Hông trên', u: 0.14, target: this.state.hip }
+                ];
+                let html = `<div class="grid grid-cols-4 px-2.5 py-1 text-[10px] text-gray-500 border-b border-white/5">
       <span>Vị trí</span><span class="text-right">Thân</span><span class="text-right">Áo</span><span class="text-right">Đặt</span></div>`;
-  rows.forEach(r => {
-    const t = r.u * m.tShoulder;
-    const body = this.measureRingCm(t, false);
-    const coat = this.measureRingCm(t, true);
-    html += `<div class="grid grid-cols-4 px-2.5 py-1 border-b border-white/5 last:border-0">
+                rows.forEach(r => {
+                    const t = r.u * m.tShoulder;
+                    const body = this.measureRingCm(t, false);
+                    const coat = this.measureRingCm(t, true);
+                    html += `<div class="grid grid-cols-4 px-2.5 py-1 border-b border-white/5 last:border-0">
       <span class="text-gray-300">${r.name}</span>
       <span class="text-right font-mono-tech text-amber-300">${body.toFixed(1)}</span>
       <span class="text-right font-mono-tech text-gray-300">${coat.toFixed(1)}</span>
       <span class="text-right font-mono-tech text-gray-500">${r.target ?? '—'}</span></div>`;
-  });
-  box.innerHTML = html;
-}
+                });
+                box.innerHTML = html;
+            }
 
             initThreeScene() {
                 this.container = document.getElementById('canvas-container');
@@ -2551,6 +4063,199 @@ updateMeasureReadout() {
                 this.camera.aspect = w / h;
                 this.camera.updateProjectionMatrix();
                 this.renderer.setSize(w, h);
+            }
+
+            initMarker() {
+                this.markerGroup = new THREE.Group();
+                this.markerGroup.visible = false;
+                this.scene.add(this.markerGroup);
+
+                this.markerMats = {
+                    solid: new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0, depthWrite: false }),
+                    ghost: new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0, depthTest: false, depthWrite: false }),
+                    band: new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
+                    dot: new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0, depthTest: false, depthWrite: false })
+                };
+
+                const dotGeom = new THREE.SphereGeometry(0.0075, 16, 12);
+                this.markerDot = new THREE.Mesh(dotGeom, this.markerMats.dot);
+                this.markerDot.renderOrder = 1000;
+                this.markerDot2 = new THREE.Mesh(dotGeom, this.markerMats.dot);   // chấm thứ hai (vai trái)
+                this.markerDot2.renderOrder = 1000;
+                this.markerDot2.visible = false;
+                this.markerGroup.add(this.markerDot, this.markerDot2);
+
+                this.markerLabel = document.createElement('div');
+                this.markerLabel.className = 'absolute pointer-events-none z-30 px-2 py-1 rounded-md text-[11px] font-medium bg-[#0b0e17]/90 border border-amber-400/50 text-amber-200 whitespace-nowrap transition-opacity duration-200';
+                this.markerLabel.style.opacity = '0';
+                this.container.appendChild(this.markerLabel);
+
+                this.markerRings = [];
+                this.markerKey = null;
+                this.markerHover = false;
+                this.markerTimer = null;
+            }
+
+            updateMarkerGeometry() {
+                const spec = SLIDER_MARKERS[this.markerKey];
+                if (!spec) return;
+
+                this.markerRings.forEach(o => {
+                    this.markerGroup.remove(o);
+                    if (o.geometry) o.geometry.dispose();
+                });
+                this.markerRings = [];
+
+                const E = AnatomicalSurfaceEngine;
+                const m = E.getMetrics(this.state);
+                const OFF = 0.010;
+                const lerp = THREE.MathUtils.lerp;
+
+                const surf = (t, ang, off) => {
+                    const p = E.evalTorsoBodySection(t, ang, this.state, true, 0);
+                    const n = E.evalTorsoNormal(t, ang, this.state, true, 0);
+                    return p.addScaledVector(n, off);
+                };
+
+                const addTube = (pts, closed, radius, withGhost) => {
+                    const curve = new THREE.CatmullRomCurve3(pts, closed, 'catmullrom', 0.5);
+                    const geo = new THREE.TubeGeometry(curve, Math.max(24, pts.length * 2), radius, 6, closed);
+                    const solid = new THREE.Mesh(geo, this.markerMats.solid);
+                    solid.renderOrder = 997;
+                    this.markerGroup.add(solid);
+                    this.markerRings.push(solid);
+                    if (withGhost) {
+                        const ghost = new THREE.Mesh(geo, this.markerMats.ghost);
+                        ghost.renderOrder = 998;
+                        this.markerGroup.add(ghost);
+                        this.markerRings.push(ghost);
+                    }
+                };
+
+                const ringPts = (t) => {
+                    const pts = [];
+                    const N = 72;
+                    for (let i = 0; i < N; i++) pts.push(surf(t, -Math.PI + (i / N) * Math.PI * 2, OFF));
+                    return pts;
+                };
+
+                // Dải phủ mặt vải giữa (tA,tB) x (angA,angB)
+                const addBand = (tA, tB, angA, angB, rows, cols) => {
+                    const pos = [], idx = [];
+                    for (let r = 0; r <= rows; r++) {
+                        const t = lerp(tA, tB, r / rows);
+                        for (let c = 0; c <= cols; c++) {
+                            const p = surf(t, lerp(angA, angB, c / cols), 0.006);
+                            pos.push(p.x, p.y, p.z);
+                        }
+                    }
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1;
+                            idx.push(a, b, e, a, e, d);
+                        }
+                    }
+                    const geo = new THREE.BufferGeometry();
+                    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                    geo.setIndex(idx);
+                    const band = new THREE.Mesh(geo, this.markerMats.band);
+                    band.renderOrder = 996;
+                    this.markerGroup.add(band);
+                    this.markerRings.push(band);
+                };
+
+                let anchor = null;
+                this.markerDot2.visible = false;
+
+                if (spec.zone) {
+                    // ---- Vùng: dải + biên (vòng kín, hoặc cung nếu có sectors) ----
+                    const tA = spec.zone[0] * m.tShoulder;
+                    const tB = spec.zone[1] * m.tShoulder;
+                    const sectors = spec.sectors || [[-Math.PI, Math.PI]];
+
+                    const arcPts = (t, a0, a1) => {
+                        const pts = [];
+                        const N = Math.max(8, Math.round(72 * (a1 - a0) / (Math.PI * 2)));
+                        for (let i = 0; i <= N; i++) pts.push(surf(t, lerp(a0, a1, i / N), OFF));
+                        return pts;
+                    };
+
+                    sectors.forEach(([a0, a1]) => {
+                        const cols = Math.max(8, Math.round(72 * (a1 - a0) / (Math.PI * 2)));
+                        addBand(tA, tB, a0, a1, 8, cols);
+                        if (!spec.sectors) {
+                            addTube(ringPts(tA), true, 0.0014, true);
+                            addTube(ringPts(tB), true, 0.0014, true);
+                        } else {
+                            addTube(arcPts(tA, a0, a1), false, 0.0014, true);
+                            addTube(arcPts(tB, a0, a1), false, 0.0014, true);
+                        }
+                    });
+
+                    const [s0, s1] = sectors[0];
+                    const aMid = (s0 + s1) / 2;
+                    anchor = surf((tA + tB) / 2, Math.abs(aMid) < 0.2 ? 0.42 : aMid, 0.014);
+
+                } else if (spec.shoulder) {
+                    // ---- Vai: dải hai bên + đường may vai + chấm hai đầu vai ----
+                    [1, -1].forEach(side => {
+                        const tA = m.tShoulder, tB = 0.985;
+                        addBand(tA, tB, side * (Math.PI / 2 - 0.38), side * (Math.PI / 2 + 0.38), 8, 10);
+                        const pts = [];
+                        for (let i = 0; i <= 16; i++) pts.push(surf(lerp(tA, tB, i / 16), side * Math.PI / 2, OFF));
+                        addTube(pts, false, 0.0020, true);
+                    });
+                    anchor = surf(m.tShoulder, Math.PI / 2, 0.014);
+                    this.markerDot2.position.copy(surf(m.tShoulder, -Math.PI / 2, 0.014));
+                    this.markerDot2.visible = true;
+
+                } else {
+                    // ---- Vòng đơn ----
+                    const tList = spec.t ? spec.t : spec.u.map(u => u * m.tShoulder);
+                    tList.forEach((t, idx) => {
+                        addTube(ringPts(t), true, 0.0016, true);
+                        if (idx === 0) anchor = surf(t, 0.42, 0.014);
+                    });
+                }
+
+                if (anchor) this.markerDot.position.copy(anchor);
+
+                const item = Object.values(PARAMETRIC_SCHEMA).flat().find(i => i.key === this.markerKey);
+                if (item) {
+                    this.markerLabel.textContent =
+                        `${item.label}: ${this.state[item.key]}${item.unit ? ' ' + item.unit : ''}`;
+                }
+            }
+
+            showMarker(key, sticky = false) {
+                if (!SLIDER_MARKERS[key] || !this.markerGroup) return;
+                this.markerKey = key;
+                this.updateMarkerGeometry();
+                clearTimeout(this.markerTimer);
+
+                gsap.killTweensOf(Object.values(this.markerMats));
+                this.markerGroup.visible = true;
+                gsap.to(this.markerMats.solid, { opacity: 0.95, duration: 0.15 });
+                gsap.to(this.markerMats.ghost, { opacity: 0.28, duration: 0.15 });
+                gsap.to(this.markerMats.band, { opacity: 0.20, duration: 0.15 });
+                gsap.to(this.markerMats.dot, { opacity: 1.0, duration: 0.15 });
+                this.markerLabel.style.opacity = '1';
+
+                if (!sticky) this.markerTimer = setTimeout(() => this.hideMarker(), 1800);
+            }
+
+            hideMarker() {
+                if (this.markerHover || !this.markerGroup) return;
+                clearTimeout(this.markerTimer);
+                gsap.killTweensOf(Object.values(this.markerMats));
+                gsap.to(this.markerMats.ghost, { opacity: 0, duration: 0.3 });
+                gsap.to(this.markerMats.band, { opacity: 0, duration: 0.3 });
+                gsap.to(this.markerMats.dot, { opacity: 0, duration: 0.3 });
+                gsap.to(this.markerMats.solid, {
+                    opacity: 0, duration: 0.3,
+                    onComplete: () => { if (!this.markerHover) this.markerGroup.visible = false; }
+                });
+                this.markerLabel.style.opacity = '0';
             }
 
             initMaterials() {
@@ -2747,9 +4452,20 @@ updateMeasureReadout() {
                             rng.value = clamped;
                             num.value = clamped;
                             this.scheduleRebuild();
+                            this.showMarker(item.key, this.markerHover);
                         };
                         rng.addEventListener('input', e => onChange(e.target.value));
                         num.addEventListener('change', e => onChange(e.target.value));
+
+                        wrap.addEventListener('mouseenter', () => {
+                            this.markerHover = true;
+                            this.showMarker(item.key, true);
+                        });
+                        wrap.addEventListener('mouseleave', () => {
+                            this.markerHover = false;
+                            clearTimeout(this.markerTimer);
+                            this.markerTimer = setTimeout(() => this.hideMarker(), 350);
+                        });
                     });
                 };
 
@@ -3176,8 +4892,11 @@ updateMeasureReadout() {
             }
 
             captureScreenshot() {
+                const wasVisible = this.markerGroup ? this.markerGroup.visible : false;
+                if (this.markerGroup) this.markerGroup.visible = false;
                 this.renderer.render(this.scene, this.camera);
                 const url = this.canvas.toDataURL('image/png');
+                if (this.markerGroup) this.markerGroup.visible = wasVisible;
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `atelier-veston-3d-${Date.now()}.png`;
@@ -3225,6 +4944,12 @@ updateMeasureReadout() {
                 requestAnimationFrame(() => this.animateLoop());
                 if (this.controls) this.controls.update();
                 if (this.renderer && this.scene && this.camera) {
+                    if (this.markerGroup && this.markerGroup.visible && this.markerDot) {
+                        const v = this.markerDot.position.clone().project(this.camera);
+                        const w = this.container.clientWidth, h = this.container.clientHeight;
+                        this.markerLabel.style.left = `${(v.x * 0.5 + 0.5) * w + 14}px`;
+                        this.markerLabel.style.top = `${(-v.y * 0.5 + 0.5) * h - 12}px`;
+                    }
                     this.renderer.render(this.scene, this.camera);
                 }
             }
