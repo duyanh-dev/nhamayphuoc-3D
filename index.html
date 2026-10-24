@@ -2957,12 +2957,30 @@
                     let tCollarTip, xCollarTip, tLapelTip, xLapelTip;
 
                     if (state.lapel === 'notch') {
-                        tNotchVertex = tGorgeIn - 0.024;
-                        xNotchVertex = xGorgeIn + sideSign * (collarWidthM * 0.68);
-                        tCollarTip = tNotchVertex - 0.002;
-                        xCollarTip = xGorgeIn + sideSign * (collarWidthM * 1.08);
-                        tLapelTip = tNotchVertex - 0.016;
-                        xLapelTip = xGorgeIn + sideSign * (lapelWidthM * 1.04);
+                        // Ve chữ K theo ảnh tham chiếu. Mọi kích thước đều theo hai thanh trượt:
+                        // collarWidthM (bâu) và lapelWidthM (ve), nên đổi thanh trượt là hình dạng co giãn theo.
+                        const K_VERTEX_DROP = 0.86;   // đỉnh khe hạ xuống so với Gorge          (x collarWidthM)
+                        const K_VERTEX_OUT = 1.00;   // đỉnh khe nhô ra ngoài so với Gorge      (x collarWidthM)
+                        const K_COLLAR_OUT = 0.95;   // mũi bâu nhô thêm so với đỉnh khe        (x collarWidthM)
+                        const K_COLLAR_RISE = 0.28;   // mũi bâu cao hơn đỉnh khe                (x collarWidthM)
+                        const K_LAPEL_DROP = 0.7;   // mũi ve hạ xuống dưới đỉnh khe           (x độ rộng ve)
+
+                        const tPerM = 1.0 / (m.lenM * 0.9);                   // mét -> đơn vị t (gần mặt trước)
+                        const lapelOut = lapelWidthM * 1.04;                  // mũi ve nhô ra so với Gorge (như cũ)
+
+                        // Đỉnh khe: chéo xuống ngoài từ Gorge
+                        tNotchVertex = tGorgeIn - collarWidthM * K_VERTEX_DROP * tPerM;
+                        xNotchVertex = xGorgeIn + sideSign * (collarWidthM * K_VERTEX_OUT);
+
+                        // Mũi bâu: nhô ra ngoài, nhích lên (không vượt quá mũi ve)
+                        const vertexOut = collarWidthM * K_VERTEX_OUT;
+                        const collarOut = Math.min(collarWidthM * K_COLLAR_OUT, Math.max(0.010, lapelOut - vertexOut - 0.008));
+                        xCollarTip = xNotchVertex + sideSign * collarOut;
+                        tCollarTip = tNotchVertex + collarWidthM * K_COLLAR_RISE * tPerM;
+
+                        // Mũi ve: nhô ra ngoài, chúi xuống
+                        xLapelTip = xGorgeIn + sideSign * lapelOut;
+                        tLapelTip = tNotchVertex - lapelOut * K_LAPEL_DROP * tPerM;
                     } else if (state.lapel === 'peak') {
                         tNotchVertex = tGorgeIn - 0.028;
                         xNotchVertex = xGorgeIn + sideSign * (collarWidthM * 0.65);
@@ -3051,6 +3069,238 @@
                     const angShoulder = sideSign * Math.PI * 0.50;
                     const tShoulderIn = 0.997;
                     const tShoulderOut = THREE.MathUtils.clamp(0.958 - (state.collarWidth - 3.8) * 0.010, 0.938, 0.972);
+
+                   if (state.lapel === 'shawl') {
+    const E = AnatomicalSurfaceEngine;
+    const RF = 56, RC = 44, CC = 24;                  // hàng phía trước / hàng vòng cổ / cột
+    const vSh = 0.36;
+    const tBackInS  = 0.998;
+    const tBackOutS = THREE.MathUtils.clamp(0.962 - (state.collarWidth - 3.8) * 0.010, 0.942, 0.975);
+    const targetBackAngS = sideSign * Math.PI;
+
+    const SHAWL_BOW = 0.11;         // trước là 0.09, bầu hơn một chút
+const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
+    const W_ANG = 0.25;             // trọng số góc khi đo chiều dài cung trong không gian (t, ang)
+    const wMax = (state.lapelWidth / 100) * 0.78 * dbBoost * (1.0 + 0.18 * curveBelly);
+    const tTopIn  = 0.985;
+    const tTopOut = THREE.MathUtils.clamp(tGorgeIn - 0.025, 0.84, 0.91);
+    const camberAmp = 0.0016 + 0.0012 * (state.lapelRoll !== undefined ? state.lapelRoll : 0.4);
+
+    const ptAt = (t, ang) => E.evalTorsoBodySection(t, ang, state, true, sideSign);
+    const lerp = THREE.MathUtils.lerp;
+
+    // ---- Mép trong (giữ nguyên) ----
+    const inT = [], inA = [];
+    for (let r = 0; r <= RF; r++) {
+        const t = lerp(startT, tTopIn, r / RF);
+        inT.push(t);
+        inA.push(xToTorsoAngle(t, E.getFrontRollX(t, sideSign, state)));
+    }
+
+    // ---- Hình học cung phía trước (dùng để lấy các điểm điều khiển) ----
+    const xTop = E.getFrontRollX(tTopOut, sideSign, state) + sideSign * wMax * 0.9;
+    const angTop = xToTorsoAngle(tTopOut, xTop);
+    const p0 = ptAt(startT, inA[0]);
+    const p1 = ptAt(tTopOut, angTop);
+    const xa0 = Math.abs(p0.x), xa1 = Math.abs(p1.x);
+    const cx = xa1 - xa0, cy = p1.y - p0.y;
+    const chordLen = Math.hypot(cx, cy) || 1.0;
+    const nx = cy / chordLen, ny = -cx / chordLen;
+    const sag = SHAWL_BOW * chordLen;
+
+    const bowProfile = (v) => {
+        const k = Math.log(0.5) / Math.log(SHAWL_BULGE_POS);
+        return Math.sin(Math.PI * Math.pow(v, k));
+    };
+    const angForX = (t, xa) => {
+        let lo = 0.0, hi = 1.29;
+        for (let k = 0; k < 24; k++) {
+            const mid = 0.5 * (lo + hi);
+            if (Math.abs(ptAt(t, sideSign * mid).x) < xa) lo = mid; else hi = mid;
+        }
+        return sideSign * 0.5 * (lo + hi);
+    };
+    const solveOuter = (xa, yTarget) => {
+        let lo = startT, hi = 0.998;
+        for (let k = 0; k < 22; k++) {
+            const mid = 0.5 * (lo + hi);
+            if (ptAt(mid, angForX(mid, xa)).y < yTarget) lo = mid; else hi = mid;
+        }
+        const t = 0.5 * (lo + hi);
+        return { t, ang: angForX(t, xa) };
+    };
+
+    // ---- Mép ngoài: MỘT spline liền mạch từ ngực -> đỉnh ve -> vai -> giữa gáy ----
+    const ctrl = [{ t: startT, a: inA[0] }];
+    for (const v of [0.25, 0.5, 0.75]) {
+        const bow = bowProfile(v) * sag;
+        const s = solveOuter(xa0 + cx * v + nx * bow, p0.y + cy * v + ny * bow);
+        ctrl.push({ t: s.t, a: s.ang });
+    }
+    ctrl.push({ t: tTopOut, a: angTop });
+    const IDX_TOP = ctrl.length - 1;
+    ctrl.push({ t: tShoulderOut, a: angShoulder });
+    ctrl.push({ t: lerp(tShoulderOut, tBackOutS, 0.5), a: lerp(angShoulder, targetBackAngS, 0.5) });
+    ctrl.push({ t: tBackOutS, a: targetBackAngS });
+
+    const nC = ctrl.length;
+    const kn = [0];
+    for (let i = 1; i < nC; i++) {
+        kn.push(kn[i - 1] + (Math.hypot(ctrl[i].t - ctrl[i - 1].t, (ctrl[i].a - ctrl[i - 1].a) * W_ANG) || 1e-6));
+    }
+    // Tiếp tuyến kiểu Catmull-Rom không đều -> liên tục C1 tại mọi điểm nối
+    const mT = [], mA = [];
+    for (let i = 0; i < nC; i++) {
+        const i0 = Math.max(i - 1, 0), i1 = Math.min(i + 1, nC - 1);
+        const dk = (kn[i1] - kn[i0]) || 1e-6;
+        mT.push((ctrl[i1].t - ctrl[i0].t) / dk);
+        mA.push((ctrl[i1].a - ctrl[i0].a) / dk);
+    }
+    // Lấy mẫu dày + chiều dài cung tích lũy
+    const SEG = 120;
+    const sT = [], sA = [], sL = [];
+    let idxTopSample = 0;
+    for (let i = 0; i < nC - 1; i++) {
+        const h = kn[i + 1] - kn[i];
+        for (let j = (i === 0 ? 0 : 1); j <= SEG; j++) {
+            const u = j / SEG, u2 = u * u, u3 = u2 * u;
+            const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u;
+            const h01 = -2 * u3 + 3 * u2,    h11 = u3 - u2;
+            const T = h00 * ctrl[i].t + h10 * h * mT[i] + h01 * ctrl[i + 1].t + h11 * h * mT[i + 1];
+            const A = h00 * ctrl[i].a + h10 * h * mA[i] + h01 * ctrl[i + 1].a + h11 * h * mA[i + 1];
+            if (sT.length === 0) sL.push(0);
+            else sL.push(sL[sL.length - 1] + Math.hypot(T - sT[sT.length - 1], (A - sA[sA.length - 1]) * W_ANG));
+            sT.push(T); sA.push(A);
+        }
+        if (i + 1 === IDX_TOP) idxTopSample = sT.length - 1;
+    }
+    const Ltop = sL[idxTopSample], Ltot = sL[sL.length - 1];
+    const atLen = (len) => {
+        let lo = 0, hi = sL.length - 1;
+        while (hi - lo > 1) { const m = (lo + hi) >> 1; if (sL[m] < len) lo = m; else hi = m; }
+        const f = (len - sL[lo]) / ((sL[hi] - sL[lo]) || 1);
+        return { t: lerp(sT[lo], sT[hi], f), a: lerp(sA[lo], sA[hi], f) };
+    };
+
+    // Chia hàng theo chiều dài cung: k = 0..RF là đoạn trước, RF..RF+RC là đoạn vòng cổ
+    const total = RF + RC;
+    const outAll = [];
+    for (let k = 0; k <= total; k++) {
+        const len = k <= RF ? Ltop * (k / RF) : Ltop + (Ltot - Ltop) * ((k - RF) / RC);
+        outAll.push(atLen(len));
+    }
+    // Lọc nhẹ toàn bộ đường (kể cả chỗ nối), giữ nguyên 2 đầu
+    for (let pass = 0; pass < 14; pass++) {
+        for (let k = 1; k < total; k++) {
+            outAll[k] = {
+                t: 0.25 * outAll[k - 1].t + 0.5 * outAll[k].t + 0.25 * outAll[k + 1].t,
+                a: 0.25 * outAll[k - 1].a + 0.5 * outAll[k].a + 0.25 * outAll[k + 1].a
+            };
+        }
+    }
+    const outT = outAll.map(p => p.t);
+    const outA = outAll.map(p => p.a);
+
+    const makeVertex = (tEval, angEval, u, hugAmt, backRise, botExtra, camber) => {
+        const { p, n } = evalSurfaceAndNormal(tEval, angEval);
+        applyNeckHugAndIncline(p, u, angEval, hugAmt, backRise, n);
+        const outerTaper = 1.0 - 0.12 * this.smootherstep(0.68, 1.0, u);   // trước là 0.25
+        const bot = lerp(0.0023, 0.0021, u) + botExtra;
+        const top = bot + 0.0023 * outerTaper + camber;
+        return { bot: p.clone().addScaledVector(n, bot), top: p.clone().addScaledVector(n, top) };
+    };
+
+    const outG = [], inG = [], uvG = [];
+
+    // ---- Đoạn phía trước ----
+    for (let r = 0; r <= RF; r++) {
+        const v = r / RF;
+        const liftV = lerp(0.80, 1.0, this.smootherstep(0.0, 0.30, v));
+        const camEnv = this.smootherstep(0.0, 0.15, v);
+        const puffV = this.smootherstep(0.0, 0.22, v) * (1.0 - this.smootherstep(0.50, 1.0, v));
+        const hugAmt = this.smootherstep(0.58, 1.0, v);
+        const rowO = [], rowI = [], rowU = [];
+
+        for (let c = 0; c <= CC; c++) {
+            const u = c / CC;
+            const tEval   = lerp(inT[r], outT[r], u);
+            const angEval = lerp(inA[r], outA[r], u);
+
+            const puffU = this.smoothstep(0.0, 0.26, u) * (1.0 - this.smoothstep(0.26, 0.82, u));
+            const camber = camberAmp * 1.3 * Math.pow(Math.sin(u * Math.PI), 0.8) * camEnv;
+            const botExtra = liftM * liftV + rollAmp * 0.55 * puffU * puffV;
+
+            const vt = makeVertex(tEval, angEval, u, hugAmt, 0.0, botExtra, camber);
+            rowI.push(vt.bot); rowO.push(vt.top);
+            rowU.push(new THREE.Vector2(u * 0.45, v * 1.6));
+        }
+        if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
+        outG.push(rowO); inG.push(rowI); uvG.push(rowU);
+    }
+
+    // ---- Đoạn vòng cổ: mép trong giữ công thức cũ, mép ngoài lấy từ spline chung ----
+    for (let r = 1; r <= RC; r++) {
+        const vCol = r / RC;
+        const sideBackWrap = this.smoothstep(0.0, 0.42, vCol);
+        const camEnv = 1.0 - 0.55 * this.smootherstep(0.0, 0.6, vCol);
+
+        // Mép trong (u = 0) đúng như bản cũ
+        let iT, iA;
+        if (vCol <= vSh) {
+            const w1 = vCol / vSh;
+            iT = lerp(inT[RF], tShoulderIn, w1);
+            iA = lerp(inA[RF], angShoulder, w1);
+        } else {
+            const w2 = (vCol - vSh) / (1.0 - vSh);
+            iT = lerp(tShoulderIn, tBackInS, this.smoothstep(0.0, 1.0, w2));
+            iA = lerp(angShoulder, targetBackAngS, w2);
+        }
+        const oT = outT[RF + r], oA = outA[RF + r];
+
+        const rowO = [], rowI = [], rowU = [];
+        for (let c = 0; c <= CC; c++) {
+            const u = c / CC;
+            const tEval   = lerp(iT, oT, u);
+            const angEval = lerp(iA, oA, u);
+
+            const camber = camberAmp * Math.sin(u * Math.PI) * camEnv;
+            const vt = makeVertex(tEval, angEval, u, 1.0, 0.0050 * sideBackWrap, liftM, camber);
+            if (r === RC) { vt.bot.x = 0; vt.top.x = 0; }
+            rowI.push(vt.bot); rowO.push(vt.top);
+            rowU.push(new THREE.Vector2(u * 0.45, 1.6 + vCol * 0.8));
+        }
+        if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
+        outG.push(rowO); inG.push(rowI); uvG.push(rowU);
+    }
+
+        // ---- Lọc mượt vị trí 3D của mép ngoài (sau hug), trọng số tăng dần về phía mép ngoài ----
+    const smoothOuterEdge = (G, passes) => {
+        const n = G.length;
+        for (let pass = 0; pass < passes; pass++) {
+            const prev = G.map(row => row.map(p => p.clone()));
+            for (let r = 1; r < n - 1; r++) {
+                for (let c = 0; c <= CC; c++) {
+                    const u = sideSign < 0 ? 1 - c / CC : c / CC;
+                    const w = this.smootherstep(0.35, 1.0, u);      // 0 ở mép trong, 1 ở mép ngoài
+                    if (w <= 0) continue;
+                    const avg = prev[r - 1][c].clone().multiplyScalar(0.25)
+                        .addScaledVector(prev[r][c], 0.5)
+                        .addScaledVector(prev[r + 1][c], 0.25);
+                    G[r][c].copy(prev[r][c]).lerp(avg, w);
+                }
+            }
+        }
+    };
+    smoothOuterEdge(outG, 10);
+    smoothOuterEdge(inG, 10);
+
+    const shawlGeom = this.buildThickGridGeometry(outG, inG, uvG);
+    const shawlMesh = new THREE.Mesh(shawlGeom, lapelMat);
+    shawlMesh.castShadow = true;
+    shawlMesh.receiveShadow = true;
+    group.add(shawlMesh);
+    return;
+}
 
                     // ====================================================================
                     // PART A: LAPEL BLADE
