@@ -1024,6 +1024,31 @@
                 bottom: 44px
             }
         }
+
+        .shirt-swatches {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 7px;
+            flex: none;
+            max-width: 172px
+        }
+
+        .shirt-sw {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 .5px var(--sep);
+            transition: transform .15s, box-shadow .15s
+        }
+
+        .shirt-sw:hover {
+            transform: scale(1.12)
+        }
+
+        .shirt-sw.on {
+            box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ac)
+        }
     </style>
 </head>
 
@@ -1153,8 +1178,51 @@
                 <div class="grp">
                     <div class="row"><span>Sơ mi</span><input type="checkbox" class="sw" id="toggle-shirt" checked
                             onchange="app.setBooleanOption('showShirt', this.checked)"></div>
+                    <div class="row"><span>Màu sơ mi</span><input type="color" id="shirt-color-picker" value="#f7f8fa"
+                            oninput="app.setShirtColor(this.value)"></div>
+                    <div class="row"><span>Màu có sẵn</span>
+                        <div class="shirt-swatches">
+                            <button class="shirt-sw on" data-color="#f7f8fa" title="Trắng" style="background:#f7f8fa"
+                                onclick="app.setShirtColor('#f7f8fa')"></button>
+                            <button class="shirt-sw" data-color="#efe6d2" title="Kem" style="background:#efe6d2"
+                                onclick="app.setShirtColor('#efe6d2')"></button>
+                            <button class="shirt-sw" data-color="#c9dcf0" title="Xanh nhạt" style="background:#c9dcf0"
+                                onclick="app.setShirtColor('#c9dcf0')"></button>
+                            <button class="shirt-sw" data-color="#2a3f66" title="Xanh navy" style="background:#2a3f66"
+                                onclick="app.setShirtColor('#2a3f66')"></button>
+                            <button class="shirt-sw" data-color="#f0d4d8" title="Hồng nhạt" style="background:#f0d4d8"
+                                onclick="app.setShirtColor('#f0d4d8')"></button>
+                            <button class="shirt-sw" data-color="#b9bec6" title="Xám" style="background:#b9bec6"
+                                onclick="app.setShirtColor('#b9bec6')"></button>
+                            <button class="shirt-sw" data-color="#16181c" title="Đen" style="background:#16181c"
+                                onclick="app.setShirtColor('#16181c')"></button>
+                        </div>
+                    </div>
+                    <div class="row"><span>Kiểu bâu</span><select id="sel-shirt-collar" class="sel"
+                            onchange="app.setShirtCollar(this.value)">
+                            <option value="classic">Cổ điển (Kent)</option>
+                            <option value="spread">Cánh rộng (Cutaway)</option>
+                            <option value="buttonDown">Cài cúc (Button-down)</option>
+                            <option value="club">Bo tròn (Club)</option>
+                        </select></div>
+                    <div class="row"><span>Chất vải sơ mi</span><select id="sel-shirt-fabric" class="sel"
+                            onchange="app.setShirtFabric(this.value)">
+                            <option value="poplin">Poplin (trơn mịn)</option>
+                            <option value="oxford">Oxford (dệt rổ)</option>
+                            <option value="twill">Twill (dệt chéo)</option>
+                        </select></div>
+                </div>
+                <div class="grp">
                     <div class="row"><span>Cà vạt</span><input type="checkbox" class="sw" id="toggle-tie" checked
                             onchange="app.setBooleanOption('showTie', this.checked)"></div>
+                    <div class="row"><span>Màu cà vạt</span><input type="color" id="tie-color-picker" value="#1e293b"
+                            oninput="app.setTieColor(this.value)"></div>
+                    <div class="row"><span>Hoạ tiết cà vạt</span><select id="sel-tie-pattern" class="sel"
+                            onchange="app.setTiePattern(this.value)">
+                            <option value="stripe">Sọc chéo</option>
+                            <option value="dot">Chấm bi</option>
+                            <option value="solid">Trơn</option>
+                        </select></div>
                     <div class="row"><span>Áo gile</span><input type="checkbox" class="sw" id="toggle-trousers" checked
                             onchange="app.setBooleanOption('showWaistcoat', this.checked)"></div>
                 </div>
@@ -1584,6 +1652,57 @@
 
                 return { map, bumpMap };
             }
+
+            static createTieMaps(pattern, hex) {
+                const size = 256;
+                const cc = document.createElement('canvas'), bc = document.createElement('canvas');
+                cc.width = cc.height = bc.width = bc.height = size;
+                const cx = cc.getContext('2d'), bx = bc.getContext('2d');
+                const cImg = cx.createImageData(size, size), bImg = bx.createImageData(size, size);
+
+                const base = new THREE.Color(hex);
+                const light = base.clone().lerp(new THREE.Color(0xffffff), 0.30);
+                const dark = base.clone().multiplyScalar(0.72);
+                const rgb = (col) => [Math.round(col.r * 255), Math.round(col.g * 255), Math.round(col.b * 255)];
+                const B0 = rgb(base), L0 = rgb(light), D0 = rgb(dark);
+
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        const i = (y * size + x) * 4;
+                        let col = B0;
+
+                        if (pattern === 'stripe') {
+                            const m = (x + y) % 64;               // sọc chéo 45°, tuần hoàn khít với ô 256px
+                            if (m < 12) col = L0;
+                            else if (m >= 24 && m < 27) col = D0;
+                        } else if (pattern === 'dot') {
+                            const off = (Math.floor(y / 16) % 2) * 8;
+                            const dx = ((x + off) % 16) - 8, dy = (y % 16) - 8;
+                            if (dx * dx + dy * dy < 5) col = L0;
+                        }
+
+                        const tw = ((x + y) % 4 < 2) ? 1 : -1;     // twill vi mô của lụa dệt
+                        cImg.data[i] = THREE.MathUtils.clamp(col[0] + tw * 4, 0, 255);
+                        cImg.data[i + 1] = THREE.MathUtils.clamp(col[1] + tw * 4, 0, 255);
+                        cImg.data[i + 2] = THREE.MathUtils.clamp(col[2] + tw * 4, 0, 255);
+                        cImg.data[i + 3] = 255;
+
+                        const bv = 128 + tw * 20;
+                        bImg.data[i] = bImg.data[i + 1] = bImg.data[i + 2] = bv;
+                        bImg.data[i + 3] = 255;
+                    }
+                }
+                cx.putImageData(cImg, 0, 0);
+                bx.putImageData(bImg, 0, 0);
+
+                const mk = (canvas) => {
+                    const t = new THREE.CanvasTexture(canvas);
+                    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+                    t.anisotropy = 8;
+                    return t;
+                };
+                return { map: mk(cc), bumpMap: mk(bc) };
+            }
         }
 
         /**
@@ -1729,6 +1848,25 @@
                 };
             }
 
+            // Độ dư vải hiệu lực: có gile thì áo không được ôm hơn -0.9
+            static getEffectiveEase(state) {
+                return state.showWaistcoat ? Math.max(state.fitEase, -0.9) : state.fitEase;
+            }
+
+            // Trần độ nhô của lớp trong (cà vạt, gile phải nằm dưới mức này)
+            static getTieCapAt(t, state) {
+                const m = this.getMetrics(state);
+                const easeJ = 0.009 + this.getEffectiveEase(state) * 0.0020;
+                const capHigh = easeJ * 0.92 + 0.0010;
+                const capLow = easeJ + 0.0004 + 0.0010 - 0.0024 - 0.0006;
+                return THREE.MathUtils.lerp(capLow, capHigh, this.smoothstep(m.breakT - 0.02, m.breakT + 0.03, t));
+            }
+
+            // Độ nhô của gile: mỏng dần khi chỗ trống hẹp (tối đa 5mm, tối thiểu 3.6mm)
+            static getGileOffset(t, state) {
+                return THREE.MathUtils.clamp(this.getTieCapAt(t, state) - 0.0010 - 0.0006 - 0.0003, 0.0036, 0.0050);
+            }
+
 
             /**
  * Bù theo "vùng đo" (cm vòng): ngực dưới, eo trên, bụng dưới, hông dưới.
@@ -1847,7 +1985,7 @@
             static getTorsoRxAt(t, state, isSuitShell = true) {
                 const m = this.getMetrics(state);
                 const neckEaseTaper = 1.0 - 0.92 * this.smootherstep(m.tShoulder, 1.0, t);
-                const baseEase = isSuitShell ? (0.009 + state.fitEase * 0.0020) * neckEaseTaper : 0.0;
+                const baseEase = isSuitShell ? (0.009 + this.getEffectiveEase(state) * 0.0020) * neckEaseTaper : 0.0;
                 const neckScale = 0.68 + 0.32 * m.chestScale;
                 const targetShoulderRx = isSuitShell ? m.shoulderSeamRx : (m.shoulderSeamRx - 0.005);
                 const neckRingRx = (isSuitShell ? 0.0568 : 0.055) * neckScale;
@@ -2062,7 +2200,7 @@
 
                 // Taper ease smoothly to near-zero at the neck ring (t -> 1.0) so the jacket collar hugs the shirt collar tightly
                 const neckEaseTaper = 1.0 - 0.92 * this.smootherstep(m.tShoulder, 1.0, t);
-                const baseEase = isSuitShell ? (0.009 + state.fitEase * 0.0020) * neckEaseTaper : 0.0;
+                const baseEase = isSuitShell ? (0.009 + this.getEffectiveEase(state) * 0.0020) * neckEaseTaper : 0.0;
                 const neckScale = 0.68 + 0.32 * m.chestScale;
 
                 const targetShoulderRx = isSuitShell ? m.shoulderSeamRx : (m.shoulderSeamRx - 0.005);
@@ -2430,120 +2568,642 @@
                 basePedestalMesh.receiveShadow = true;
                 group.add(basePedestalMesh);
 
-                // C. Dress Shirt Chest & Sculpted 3D Turn-Down Collar
+                // ============================================================================
+                // C. ÁO SƠ MI - vải dệt thật, nẹp áo + cúc xà cừ, bâu 4 kiểu, chỉ may diễu
+                // ----------------------------------------------------------------------------
+                // THAY NGUYÊN KHỐI "if (state.showShirt) { ... }" (ngay trước khối D cà vạt).
+                // Khối D (cà vạt) và mọi logic core giữ NGUYÊN, không đụng.
+                //
+                // NÂNG CẤP LẦN NÀY (chỉ phần BÂU ÁO - mục 4 + bảng COLLARS):
+                //   1. Bâu thấp hơn, đúng tỉ lệ thực tế so với nút cà vạt (sTop, STAND_H, back, drop).
+                //   2. Bâu mềm: mép cuộn nhiều hơn, mũi bâu hơi cong, sóng vải nhẹ, nếp gập mềm.
+                //   3. Có độ mở giữa bâu và cổ (neckGap): hở ra phía trước, ôm sát hơn ở sau gáy.
+                //   4. Cà vạt sát bâu: mép bâu ôm sát hai bên nút thắt (TIE_SNUG nhỏ + đường mép ôm nút).
+                //
+                // Cần có trong state:
+                //   state.shirtColor  = '#f7f8fa'
+                //   state.shirtCollar = 'classic'   ('classic' | 'spread' | 'buttonDown' | 'club')
+                //   state.shirtFabric = 'poplin'    ('poplin' | 'oxford' | 'twill')
+                // ============================================================================
                 if (state.showShirt) {
-                    const sRows = 26, sCols = 32;
-                    const sPos = [], sInd = [];
-                    for (let r = 0; r <= sRows; r++) {
-                        const t = 0.36 + (r / sRows) * 0.64;
-                        for (let c = 0; c <= sCols; c++) {
-                            const angle = ((c / sCols) - 0.5) * 1.45;
-                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, angle, state, false, 0);
-                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, angle, state, false, 0);
-                            p.addScaledVector(n, 0.0030);
-                            sPos.push(p.x, p.y, p.z);
+                    const E = AnatomicalSurfaceEngine;
+                    const lerp = THREE.MathUtils.lerp, clamp = THREE.MathUtils.clamp;
+
+                    // smoothstep: chuyển mượt từ 0 -> 1 trong khoảng [a, b]
+                    const sstep = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
+                    const TWO_PI = Math.PI * 2;
+                    const tieOn = !!state.showTie;
+                    const WV = 0.012;                       // 1 ô vân dệt = 4mm (UV theo mét thật)
+
+                    // ---------- 0. THAM SỐ ----------
+                    const shirtHex = state.shirtColor || '#f7f8fa';
+                    const collarKey = state.shirtCollar || 'classic';
+                    const fabricKey = state.shirtFabric || 'poplin';
+                    const shirtCol = new THREE.Color(shirtHex);
+                    const hsl = { h: 0, s: 0, l: 0 };
+                    shirtCol.getHSL(hsl);
+                    const threadCol = shirtCol.clone().offsetHSL(0, 0, hsl.l > 0.55 ? -0.10 : 0.12);   // chỉ may: đậm/nhạt hơn vải một chút
+
+                    // tipX: nửa khoảng cách hai mũi bâu (m) | drop: độ dài mũi bâu (đơn vị s)
+                    // back: chiều cao bâu phía sau | round: độ bo mũi | roll: độ phồng/cuộn mép bâu (m)
+                    // (bản mới: bâu thấp hơn, mũi ngắn hơn, cuộn mềm hơn)
+                    const COLLARS = {
+                        classic: { tipX: 0.030, drop: 0.084, back: 0.036, round: 0.020, roll: 0.0012, buttons: false },
+                        spread: { tipX: 0.046, drop: 0.074, back: 0.034, round: 0.022, roll: 0.0012, buttons: false },
+                        buttonDown: { tipX: 0.032, drop: 0.078, back: 0.034, round: 0.024, roll: 0.0020, buttons: true },
+                        club: { tipX: 0.030, drop: 0.068, back: 0.032, round: 0.035, roll: 0.0012, buttons: false }
+                    };
+                    const CT = COLLARS[collarKey] || COLLARS.classic;
+
+                    // ---------- 1. VẢI: phẳng, mịn, cao cấp ----------
+                    // Không dùng map màu (giữ màu đúng 100%). Poplin = phẳng hoàn toàn.
+                    // Oxford / Twill chỉ có vân nổi rất nhẹ, không gây nhiễu mắt.
+                    // getWeave: tạo (và cache) texture vân dệt dạng bump theo loại vải
+                    const getWeave = (type) => {
+                        if (type === 'poplin') return null;
+                        this._shirtWeaves = this._shirtWeaves || {};
+                        if (this._shirtWeaves[type]) return this._shirtWeaves[type];
+                        const N = 128, TH = 8;
+                        const cv = document.createElement('canvas');
+                        cv.width = cv.height = N;
+                        const ctx = cv.getContext('2d');
+                        const img = ctx.createImageData(N, N);
+                        for (let y = 0; y < N; y++) {
+                            for (let x = 0; x < N; x++) {
+                                const i = (x / TH) | 0, j = (y / TH) | 0;
+                                const fx = (x % TH) / TH, fy = (y % TH) / TH;
+                                const warpOver = type === 'oxford'
+                                    ? (((i >> 1) + (j >> 1)) & 1) === 0
+                                    : ((((i - j) % 4) + 4) % 4) < 3;
+                                const h = warpOver ? Math.sin(Math.PI * fx) : Math.sin(Math.PI * fy);
+                                const g = 232 + 23 * h;                       // tương phản rất thấp
+                                const o = (y * N + x) * 4;
+                                img.data[o] = img.data[o + 1] = img.data[o + 2] = g;
+                                img.data[o + 3] = 255;
+                            }
+                        }
+                        ctx.putImageData(img, 0, 0);
+                        const tex = new THREE.CanvasTexture(cv);
+                        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                        tex.anisotropy = 8;
+                        this._shirtWeaves[type] = tex;
+                        return tex;
+                    };
+                    const bump = getWeave(fabricKey);
+
+                    // bản sao vật liệu sơ mi (không ảnh hưởng các mảnh khác dùng materials.shirt)
+                    if (!this._shirtMat || this._shirtMatSrc !== materials.shirt) {
+                        this._shirtMat = materials.shirt.clone();
+                        this._shirtMatSrc = materials.shirt;
+                    }
+                    const shirtMat = this._shirtMat;
+                    materials.shirt.color.copy(shirtCol);
+                    shirtMat.color.copy(shirtCol);
+                    shirtMat.map = null;
+                    if (shirtMat.bumpMap !== bump) { shirtMat.bumpMap = bump; shirtMat.needsUpdate = true; }
+                    shirtMat.bumpScale = 0.12;
+                    shirtMat.roughness = fabricKey === 'twill' ? 0.50 : fabricKey === 'oxford' ? 0.62 : 0.55;
+                    shirtMat.metalness = 0;
+
+                    const stitchMat = new THREE.MeshStandardMaterial({ color: threadCol, roughness: 0.95 });
+                    const pearlMat = new THREE.MeshStandardMaterial({ color: 0xf2eee6, roughness: 0.28, metalness: 0.05, side: THREE.DoubleSide });
+                    const holeMat = new THREE.MeshStandardMaterial({ color: 0x6f6a62, roughness: 0.9 });
+
+                    // ---------- 2. TIỆN ÍCH: chỉ may diễu + cúc xà cừ ----------
+                    // addStitch: vẽ một đường chỉ may diễu (ống mảnh) đi qua danh sách điểm pts
+                    const addStitch = (pts, r) => {
+                        if (pts.length < 2) return;
+                        const curve = new THREE.CatmullRomCurve3(pts);
+                        const g = new THREE.TubeGeometry(curve, Math.max(24, pts.length * 2), r || 0.00016, 4, false);
+                        const m = new THREE.Mesh(g, stitchMat);
+                        m.receiveShadow = true;
+                        group.add(m);
+                    };
+
+                    const pearlGeo = new THREE.LatheGeometry([
+                        [0, 0], [0.0048, 0], [0.0052, 0.0003], [0.0052, 0.0010], [0.0046, 0.0015], [0.0030, 0.0012], [0, 0.0009]
+                    ].map(([x, y]) => new THREE.Vector2(x, y)), 24);
+                    const holeGeo = new THREE.CircleGeometry(0.00055, 10);
+                    const barGeo = new THREE.BoxGeometry(0.0034, 0.00014, 0.00035);
+
+                    // placeButton: đặt 1 cúc xà cừ (4 lỗ + chỉ chéo) tại điểm p, hướng theo pháp tuyến n
+                    const placeButton = (p, n, lift, scale) => {
+                        const g = new THREE.Group();
+                        const body = new THREE.Mesh(pearlGeo, pearlMat);
+                        body.castShadow = true;
+                        g.add(body);
+                        [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([a, b]) => {
+                            const h = new THREE.Mesh(holeGeo, holeMat);
+                            h.rotation.x = -Math.PI / 2;
+                            h.position.set(a * 0.0013, 0.0012, b * 0.0013);
+                            g.add(h);
+                        });
+                        [Math.PI / 4, -Math.PI / 4].forEach((ry) => {
+                            const bar = new THREE.Mesh(barGeo, stitchMat);
+                            bar.rotation.y = ry;
+                            bar.position.set(0, 0.00135, 0);
+                            g.add(bar);
+                        });
+                        g.scale.setScalar(scale || 1);
+                        g.position.copy(p).addScaledVector(n, lift);
+                        g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n.clone().normalize());
+                        group.add(g);
+                    };
+
+                    // ======================================================================
+                    // 3. THÂN ÁO + NẸP CÚC  (GIỮ NGUYÊN)
+                    //    Toàn bộ giữ dưới mặt trong của cà vạt (B_SHIRT 4.5mm - dày 1.6mm):
+                    //    nền 1.7mm + nẹp 0.7mm + nếp nhăn <= 0.5mm  => không bao giờ xuyên qua cà vạt.
+                    // ======================================================================
+                    const BASE = 0.0017, PLK_H = 0.0007, PLK_W = 0.0125;
+                    const buttonTs = [0.900, 0.785, 0.670, 0.555, 0.440];
+
+                    // capOf: độ cao tối đa cho phép của thân áo tại t (để luôn nằm dưới gile/vest)
+                    const capOf = (t) => {
+                        const c = E.getTieCapAt ? E.getTieCapAt(t, state) : 1;
+                        return Number.isFinite(c) ? c : 1;
+                    };
+                    // pull: nếp nhăn kéo toả ra từ mỗi cúc (rất nhẹ, chỉ ngoài vùng nẹp)
+                    const pull = (t, ax) => {
+                        const env = sstep(PLK_W + 0.002, PLK_W + 0.02, ax) * Math.exp(-Math.pow(ax / 0.085, 2));
+                        if (env < 0.001) return 0;
+                        let w = 0;
+                        for (const tb of buttonTs) {
+                            const dy = (t - tb) * 0.68;
+                            const wy = Math.exp(-Math.pow(dy / 0.032, 2));
+                            w += wy * (Math.exp(-Math.pow((dy - 0.55 * ax) / 0.0065, 2)) + Math.exp(-Math.pow((dy + 0.55 * ax) / 0.0065, 2)));
+                        }
+                        return 0.00022 * env * w;
+                    };
+                    // chestAt: điểm, pháp tuyến và độ nâng của thân áo tại (t, ang)
+                    const chestAt = (t, ang) => {
+                        const p = E.evalTorsoBodySection(t, ang, state, false, 0).clone();
+                        const n = E.evalTorsoNormal(t, ang, state, false, 0).clone();
+                        const ax = Math.abs(p.x);
+                        let off = BASE + PLK_H * (1 - sstep(PLK_W - 0.0012, PLK_W, ax)) + pull(t, ax);
+                        off = Math.max(0.0006, Math.min(off, capOf(t) - 0.0008));      // luôn nằm dưới gile/vest
+                        return { p, n, off };
+                    };
+
+                    {
+                        const sRows = 72, sCols = 64;
+                        const sPos = [], sUv = [], sInd = [];
+                        for (let r = 0; r <= sRows; r++) {
+                            const t = 0.36 + (r / sRows) * 0.64;
+                            for (let c = 0; c <= sCols; c++) {
+                                const ang = ((c / sCols) - 0.5) * 1.45;
+                                const k = chestAt(t, ang);
+                                const q = k.p.addScaledVector(k.n, k.off);
+                                sPos.push(q.x, q.y, q.z);
+                                sUv.push(q.x / WV, q.y / WV);
+                            }
+                        }
+                        for (let r = 0; r < sRows; r++) {
+                            for (let c = 0; c < sCols; c++) {
+                                const a = r * (sCols + 1) + c, b = a + 1, d = a + sCols + 1, e = d + 1;
+                                sInd.push(a, b, e, a, e, d);
+                            }
+                        }
+                        const shirtGeom = new THREE.BufferGeometry();
+                        shirtGeom.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
+                        shirtGeom.setAttribute('uv', new THREE.Float32BufferAttribute(sUv, 2));
+                        shirtGeom.setIndex(sInd);
+                        shirtGeom.computeVertexNormals();
+                        const shirtMesh = new THREE.Mesh(shirtGeom, shirtMat);
+                        shirtMesh.receiveShadow = true;
+                        group.add(shirtMesh);
+
+                        // chỉ diễu hai mép nẹp
+                        [-1, 1].forEach((sg) => {
+                            const pts = [];
+                            for (let t = 0.40; t <= 0.975; t += 0.012) {
+                                const rx = E.getTorsoRxAt(t, state, false);
+                                const ang = Math.asin(clamp(sg * (PLK_W - 0.0009) / rx, -0.96, 0.96));
+                                const c = chestAt(t, ang);
+                                pts.push(c.p.addScaledVector(c.n, c.off + 0.00014));
+                            }
+                            addStitch(pts);
+                        });
+
+                        // cúc nẹp: chỉ đặt khi cà vạt không che và vest/gile không đè lên
+                        buttonTs.forEach((tb) => {
+                            if (tieOn && tb >= 0.41) return;
+                            const c = chestAt(tb, 0);
+                            if (capOf(tb) - 0.0008 < c.off + 0.0017) return;
+                            placeButton(c.p, c.n, c.off - 0.0001, 1);
+                        });
+                    }
+
+                    // ======================================================================
+                    // 4. BÂU ÁO (V4): mép trên có độ cong (sau cao - trước thấp), chân bâu thấp dần
+                    //    về phía trước ôm sát nút cà vạt, lá bâu nghiêng xuôi và tiếp xúc TIẾP TUYẾN
+                    //    với thân áo (không còn nếp gấp khúc ở chỗ chạm).
+                    // ======================================================================
+                    {
+                        // ---------- THAM SỐ CHỈNH NHANH ----------
+                        const sTop = 0.876;                     // đỉnh chân bâu ở SAU GÁY (V4: 0.872 -> nâng lên một chút)
+                        const STAND_H = 0.032;                  // chiều cao chân bâu ở sau gáy
+                        const sStandBot = sTop - STAND_H;       // đáy chân bâu ở cạnh/sau cổ
+                        const GAP = 0.002;                      // khe giữa hai đầu chân bâu ở chính diện (rad) - gần như liền, không còn đường hở
+                        const MAX_DIP = 0.016;                  // mép trên hạ thấp tối đa ở chính diện so với sau gáy
+                        const FRONT_STAND_H = 0.028;            // chiều cao chân bâu mong muốn ở chính diện
+                        const NECK_GAP_FRONT = 0.0022;          // độ hở THÊM giữa bâu và cổ ở chính diện (m)
+                        const NECK_GAP_BASE = 0.0014;           // độ hở nền giữa bâu và cổ (m)
+                        const LEAN = 0.0014;                    // đỉnh chân bâu ở chính diện nghiêng nhẹ ra ngoài (cổ áo hơi hé mở)
+                        const DRAPE = 0.0024;                   // độ phồng/nghiêng của lá bâu (m) - đỉnh phồng nằm ở nửa DƯỚI lá bâu
+                        const PUFF = 0.0024;                    // lá bâu phồng lên so với chân bâu bên dưới (m) - tạo cảm giác mềm, có độ dày
+                        const BELLY = 0.0014;                   // mép dưới lá bâu hơi cong ra ngoài (không bị ép sát thân áo) (m)
+                        const SHIRT_TOP = 0.0038;               // mức mà mép dưới lá bâu hạ xuống: cao hơn mặt thân áo ~1.5mm => phồng nhẹ, không bị ép rạt (m)
+                        const SETTLE_H = 0.040;                 // đoạn (đơn vị s) để lá bâu êm dần từ cổ xuống nằm lên thân áo
+                        const MAX_OUT_SIDE = 0.0060;            // độ nhô tối đa hai bên + sau gáy (nằm dưới bâu vest)
+                        const MAX_OUT_FRONT = 0.0094;           // độ nhô tối đa ở chính diện (nằm dưới ve vest)
+                        const TIE_SNUG = 0.0030;                // khe giữa mép bâu và nút cà vạt
+
+                        // bán kính cổ -> đổi khoảng cách x sang góc
+                        const rNeck = Math.abs(E.evalMannequinPoint(0.86, Math.PI / 2, state).x) || 0.065;
+
+                        // vùng cà vạt: lá bâu ôm sát hai bên nút thắt (nút rộng tối đa 1.85cm)
+                        const KNOT_MAX_W = 0.0185;
+                        const x0 = 0.0008;                                                           // nửa khe ở đỉnh nếp gập: hai lá bâu DÍNH SÁT nhau
+                        const tipX = Math.max(CT.tipX, tieOn ? KNOT_MAX_W + TIE_SNUG + 0.003 : 0);       // nửa khoảng cách hai mũi bâu (đủ rộng ôm nút cà vạt)
+                        const phi0 = Math.asin(clamp(x0 / rNeck, 0.004, 0.9));
+                        const phiTip = Math.asin(clamp(tipX / rNeck, 0.1, 0.98));
+
+                        // neckFrame: điểm + pháp tuyến hướng ra ngoài của bề mặt cổ (sai phân hữu hạn)
+                        const neckFrame = (s, th) => {
+                            const p = E.evalMannequinPoint(s, th, state).clone();
+                            const ps = E.evalMannequinPoint(s + 0.004, th, state).clone();
+                            const pt = E.evalMannequinPoint(s, th + 0.012, state).clone();
+                            const a = ps.sub(p), b = pt.sub(p);
+                            const n = new THREE.Vector3().crossVectors(b, a).normalize();
+                            const ref = new THREE.Vector3(Math.sin(th), 0.6, Math.cos(th));
+                            if (n.dot(ref) < 0) n.negate();
+                            return { p, n };
+                        };
+
+                        // findS: tìm tham số s của cổ sao cho điểm chính diện có độ cao y = yTarget (chia đôi)
+                        const findS = (yTarget) => {
+                            let lo = 0.55, hi = sTop;
+                            for (let k = 0; k < 22; k++) {
+                                const mid = (lo + hi) * 0.5;
+                                if (E.evalMannequinPoint(mid, 0.0, state).y < yTarget) lo = mid; else hi = mid;
+                            }
+                            return (lo + hi) * 0.5;
+                        };
+
+                        // đáy chân bâu ở chính diện: có cà vạt thì hạ xuống sát đỉnh nút thắt (cà vạt nằm sát cổ áo)
+                        const KNOT_TOP_T = 0.994;               // PHẢI KHỚP với T_KNOT_TOP trong khối D cà vạt
+                        const KNOT_BOT_T = 0.950;               // PHẢI KHỚP với T_KNOT_BOT trong khối D cà vạt
+                        const yKnotTop = E.evalTorsoBodySection(KNOT_TOP_T, 0, state, false, 0).y;
+                        const frontBot = tieOn
+                            ? clamp(findS(yKnotTop) + 0.001, sStandBot - 0.024, sStandBot - 0.004)
+                            : sStandBot - 0.008;
+                        // mép trên chân bâu ở chính diện: hạ thấp để mép trên có độ cong (sau cao, trước thấp)
+                        const DIP = clamp(sTop - (frontBot + FRONT_STAND_H), 0, MAX_DIP);
+
+                        // topAt: mép trên chân bâu / nếp gập theo góc phi - cong mượt từ chính diện ra sau gáy
+                        const topAt = (phi) => sTop - DIP * (1 - sstep(0.0, 2.4, phi));
+                        // standBotAt: đáy chân bâu theo góc phi - thấp dần về phía trước, rộng và mượt (KHÔNG phải cái lưỡi hẹp)
+                        const standBotAt = (phi) => sStandBot - (sStandBot - frontBot) * (1 - sstep(0.0, 0.9, phi));
+
+                        // neckGap: độ hở giữa bâu và cổ theo góc phi - hở ở chính diện, tắt dần về hai bên (dưới bâu vest)
+                        const neckGap = (phi) => NECK_GAP_BASE + NECK_GAP_FRONT * (1 - sstep(0.20, 1.10, phi));
+
+                        // standOff: khoảng cách chân bâu/lá bâu so với mặt cổ tại độ sâu d và góc phi
+                        const standOff = (d, phi) => neckGap(phi) + 0.0004 * clamp(d / STAND_H, 0, 1);
+
+                        // neckFrameSoft: pháp tuyến được làm mượt dọc theo chiều cao => lá bâu không bị gập tại chỗ cổ chuyển sang ngực/thân áo
+                        const neckFrameSoft = (s, th) => {
+                            const a = neckFrame(s, th), b = neckFrame(s - 0.014, th), c2 = neckFrame(s + 0.014, th);
+                            a.n = a.n.clone().multiplyScalar(2).add(b.n).add(c2.n).normalize();
+                            return a;
+                        };
+
+                        // capMin: min mượt - chặn độ nhô của lá bâu dưới mức tối đa mà không tạo gờ
+                        const capMin = (a, b, k) => {
+                            const h = clamp(0.5 + 0.5 * (b - a) / k, 0, 1);
+                            return lerp(b, a, h) - k * h * (1 - h);
+                        };
+
+                        // ---------- 4a. CHÂN BÂU ----------
+                        {
+                            const SC = 96, SR = 8;
+                            const rO = [], rI = [], rU = [];
+                            for (let r = 0; r <= SR; r++) {
+                                const v = r / SR;
+                                const rowO = [], rowI = [], rowU = [];
+                                for (let i = 0; i <= SC; i++) {
+                                    const th = GAP + (i / SC) * (TWO_PI - 2 * GAP);
+                                    const phi = th <= Math.PI ? th : TWO_PI - th;
+                                    const top = topAt(phi);
+                                    const s = lerp(top, standBotAt(phi), v);
+                                    const fr = neckFrame(s, th);
+                                    const front = 1 - sstep(0.20, 1.10, phi);
+                                    // đỉnh chân bâu hơi nghiêng ra ngoài ở chính diện, đáy ôm cổ => hình nón, không phải ống thẳng
+                                    const lean = LEAN * front * Math.pow(1 - v, 2);
+                                    const off = standOff(top - s, phi) + lean;
+                                    rowO.push(fr.p.clone().addScaledVector(fr.n, off));
+                                    rowI.push(fr.p.clone().addScaledVector(fr.n, off - 0.0010));      // chân bâu mỏng -> mềm
+                                    rowU.push(new THREE.Vector2(th * rNeck / WV, fr.p.y / WV));
+                                }
+                                rO.push(rowO); rI.push(rowI); rU.push(rowU);
+                            }
+                            const standMesh = new THREE.Mesh(this.buildThickGridGeometry(rO, rI, rU), shirtMat);
+                            standMesh.castShadow = true;
+                            standMesh.receiveShadow = true;
+                            group.add(standMesh);
+
+                            // không cà vạt: cổ áo cài kín bằng cúc cổ
+                            if (!tieOn) {
+                                const fr = neckFrame(topAt(0) - 0.018, 0.0);
+                                placeButton(fr.p, fr.n, standOff(0.018, 0) + 0.0001, 0.85);
+                            }
+                        }
+
+                        // ---------- 4b. LÁ BÂU ----------
+                        {
+                            const LR = 30, LC = 110;
+                            const sBack = sTop - CT.back;
+                            const topFront = sTop - DIP;                // nếp gập ở chính diện
+
+                            // dTop / dBot: độ sâu (đơn vị s, tính từ nếp gập) của đỉnh và đáy nút thắt cà vạt
+                            let dTop = 0.020, dBot = 0.050;
+                            if (tieOn) {
+                                dTop = clamp(topFront - findS(yKnotTop), 0.012, 0.050);
+                                const yKnotBot = E.evalTorsoBodySection(KNOT_BOT_T, 0, state, false, 0).y;
+                                dBot = clamp(topFront - findS(yKnotBot), dTop + 0.015, 0.090);
+                            }
+                            const dropEff = Math.max(CT.drop, dBot + 0.010);    // mũi bâu luôn thấp hơn đáy nút thắt
+                            const sTipS = topFront - dropEff;
+
+                            // monoCubic: nội suy khối đơn điệu (Fritsch-Carlson) - đường mép cong mượt, không gãy, không vọt
+                            const monoCubic = (xs, ys) => {
+                                const n = xs.length, dl = [], m = new Array(n).fill(0);
+                                for (let i = 0; i < n - 1; i++) dl.push((ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i]));
+                                m[0] = dl[0]; m[n - 1] = dl[n - 2];
+                                for (let i = 1; i < n - 1; i++) m[i] = (dl[i - 1] * dl[i] <= 0) ? 0 : (dl[i - 1] + dl[i]) * 0.5;
+                                for (let i = 0; i < n - 1; i++) {
+                                    if (dl[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+                                    const a1 = m[i] / dl[i], b1 = m[i + 1] / dl[i], h = a1 * a1 + b1 * b1;
+                                    if (h > 9) { const t3 = 3 / Math.sqrt(h); m[i] = t3 * a1 * dl[i]; m[i + 1] = t3 * b1 * dl[i]; }
+                                }
+                                return (x) => {
+                                    let i = 0;
+                                    while (i < n - 2 && x > xs[i + 1]) i++;
+                                    const h = xs[i + 1] - xs[i], t = clamp((x - xs[i]) / h, 0, 1), t2 = t * t, t3 = t2 * t;
+                                    return (2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * h * m[i]
+                                        + (-2 * t3 + 3 * t2) * ys[i + 1] + (t3 - t2) * h * m[i + 1];
+                                };
+                            };
+
+                            // edgeX(độ sâu) -> nửa khoảng cách mép trước lá bâu: bắt đầu dính nhau ở đỉnh, mở dần thành chữ V ôm hai bên nút thắt
+                            const xs0 = rNeck * Math.sin(phi0);
+                            const edgeX = tieOn
+                                ? monoCubic([0, dTop, dTop + 0.55 * (dBot - dTop), dBot, dropEff],
+                                    [xs0, 0.0130, 0.0182, KNOT_MAX_W + TIE_SNUG + 0.001, tipX])
+                                : monoCubic([0, 0.5 * dropEff, dropEff], [xs0, xs0 + 0.55 * (tipX - xs0), tipX]);
+                            // depthAtX: đảo hàm - độ sâu của mép trước tại khoảng cách ngang x (tìm kiếm nhị phân)
+                            const depthAtX = (x) => {
+                                let lo = 0, hi = dropEff;
+                                for (let k = 0; k < 26; k++) {
+                                    const mid = 0.5 * (lo + hi);
+                                    if (edgeX(mid) < x) lo = mid; else hi = mid;
+                                }
+                                return 0.5 * (lo + hi);
+                            };
+
+                            // softMax: max mượt giữa a và b (bo tròn chỗ giao hai đường mép)
+                            const softMax = (a, b, k) => {
+                                const h = Math.max(k - Math.abs(a - b), 0) / k;
+                                return Math.max(a, b) + h * h * k * 0.25;
+                            };
+
+                            // đáy lá bâu theo góc phi: mép trước theo đường V ôm nút cà vạt, rồi thoai thoải lên sau gáy
+                            const cols = [];
+                            const top0 = topAt(phi0);
+                            for (let i = 0; i <= LC; i++) {
+                                const th = phi0 + (i / LC) * (TWO_PI - 2 * phi0);
+                                const phi = th <= Math.PI ? th : TWO_PI - th;
+                                const xHere = Math.min(rNeck * Math.sin(Math.min(phi, Math.PI / 2)), tipX);
+                                const line1 = top0 - depthAtX(xHere);
+                                const s2 = lerp(sTipS, sBack, sstep(0, 1, (phi - phiTip) / 1.25));
+                                cols.push({ th, phi, bottom: Math.min(topAt(phi), softMax(line1, s2, CT.round)) });
+                            }
+
+                            const rO = [], rI = [], rU = [], rN = [];
+                            for (let r = 0; r <= LR; r++) {
+                                // v dày hơn gần nếp gập -> đường cong tại nếp gập tròn trịa, không gãy
+                                const v = Math.pow(r / LR, 1.5);
+                                const rowO = [], rowI = [], rowU = [], rowN = [];
+                                for (let i = 0; i <= LC; i++) {
+                                    const c = cols[i];
+                                    const top = topAt(c.phi);
+                                    const s = lerp(top, c.bottom, v);
+                                    const fr = neckFrameSoft(s, c.th);
+                                    const d = top - s;
+
+                                    const front = 1 - sstep(0.20, 1.10, c.phi);                         // 1 ở chính diện -> 0 từ hai bên ra sau
+                                    const cover = sstep(0.90, 1.50, c.phi);                             // 1 ở vùng bâu vest ôm cổ
+
+                                    // e: mức "đã rời khỏi chân bâu và đang xuôi xuống nằm lên thân áo" (0 -> 1, êm hai đầu)
+                                    const below = clamp((standBotAt(c.phi) - s) / SETTLE_H, 0, 1);
+                                    const e = sstep(0, 1, sstep(0, 1, below)) * (1 - sstep(0.60, 1.20, c.phi));   // làm mượt hai lần => không có điểm gãy
+
+                                    // mức mặt nền dưới lá bâu: sát chân bâu ở phía trên, êm dần xuống mặt thân áo ở phía dưới
+                                    const level = lerp(standOff(d, c.phi) + 0.0004, SHIRT_TOP, e);
+
+                                    // vòm mềm ngay dưới nếp gập, tắt dần khi lá bâu đã nằm lên thân áo => tiếp xúc tiếp tuyến, không gấp khúc
+                                    const arch = Math.sin(Math.PI * Math.pow(sstep(0, 1, v), 1.3));      // đỉnh phồng ở khoảng v=0.55 (nửa dưới), về 0 mượt ở hai đầu
+                                    const drape = DRAPE * arch * (0.35 + 0.65 * front);
+                                    const rest = BELLY * sstep(0.50, 1.0, v) * (1 - 0.7 * cover);       // mép dưới cong nhẹ ra ngoài, tăng dần êm
+
+                                    // puff: lá bâu bồng lên khỏi chân bâu bên dưới, đỉnh phồng ngay dưới nếp gập (v~0.35), khép mượt về 0 ở nếp gập và khi đã nằm lên thân áo
+                                    // (bản này: nâng cả THÂN lá bâu - nền phẳng trải rộng từ v=0.25 đến v=0.75, khép mượt về 0 ở nếp gập và ở mép dưới đã có BELLY nâng)
+                                    const bodyShape = sstep(0.0, 0.25, v) * (1 - sstep(0.75, 1.0, v));
+                                    const puff = PUFF * bodyShape * (1 - 0.35 * e) * (0.55 + 0.45 * front) * (1 - 0.4 * cover);
+
+                                    const seam = 0.0008 * Math.pow(1 - v, 3);                           // dày hơn nhẹ ở nếp gập (nếp gập tròn đầy)
+                                    const thick = 0.0011 + seam;                                        // độ dày lá bâu (dày hơn nhẹ => mềm, có khối)
+                                    const outerRaw = level + drape + rest + puff + thick;
+
+                                    // chặn mặt ngoài: không lố ra khỏi bâu vest / ve vest
+                                    const maxOut = MAX_OUT_SIDE + (MAX_OUT_FRONT - MAX_OUT_SIDE) * front * sstep(0.08, 0.55, v);
+                                    let outer = capMin(outerRaw, maxOut, 0.0012);
+                                    const inner = Math.max(outer - thick, Math.min(level, standOff(d, c.phi) + 0.0002));
+                                    outer = Math.max(outer, inner + 0.0006);
+
+                                    rowO.push(fr.p.clone().addScaledVector(fr.n, outer));
+                                    rowI.push(fr.p.clone().addScaledVector(fr.n, inner));
+                                    rowU.push(new THREE.Vector2(c.th * rNeck / WV, fr.p.y / WV));
+                                    rowN.push(fr.n);
+                                }
+                                rO.push(rowO); rI.push(rowI); rU.push(rowU); rN.push(rowN);
+                            }
+                            const leafMesh = new THREE.Mesh(this.buildThickGridGeometry(rO, rI, rU), shirtMat);
+                            leafMesh.castShadow = true;
+                            leafMesh.receiveShadow = true;
+                            group.add(leafMesh);
+
+                            // chỉ diễu cách mép dưới + mép trước lá bâu ~3mm
+                            {
+                                const pts = [];
+                                for (let i = 0; i <= LC; i++) {
+                                    if (topAt(cols[i].phi) - cols[i].bottom < 0.02) continue;
+                                    pts.push(rO[LR - 1][i].clone().addScaledVector(rN[LR - 1][i], 0.00014));
+                                }
+                                addStitch(pts);
+                            }
+
+                            // bâu cài cúc: hai cúc nhỏ giữ hai mũi bâu
+                            if (CT.buttons) {
+                                [1, -1].forEach((sg) => {
+                                    const th = sg > 0 ? phiTip + 0.17 : TWO_PI - (phiTip + 0.17);
+                                    const i = clamp(Math.round((th - phi0) / (TWO_PI - 2 * phi0) * LC), 0, LC);
+                                    const r = LR - 3;
+                                    placeButton(rO[r][i], rN[r][i], 0.0001, 0.62);
+                                });
+                            }
                         }
                     }
-                    for (let r = 0; r < sRows; r++) {
-                        for (let c = 0; c < sCols; c++) {
-                            const a = r * (sCols + 1) + c;
-                            const b = a + 1;
-                            const d = (r + 1) * (sCols + 1) + c;
-                            const e = d + 1;
-                            sInd.push(a, b, e, a, e, d);
-                        }
-                    }
-                    const shirtGeom = new THREE.BufferGeometry();
-                    shirtGeom.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
-                    shirtGeom.setIndex(sInd);
-                    shirtGeom.computeVertexNormals();
-                    const shirtMesh = new THREE.Mesh(shirtGeom, materials.shirt);
-                    shirtMesh.receiveShadow = true;
-                    group.add(shirtMesh);
-
-                    // Sculpted 3D High-Structured Dress Shirt Collar (matching reference image)
-                    const cSegs = 52;
-                    const cRows = 8;
-                    const colOut = [], colIn = [], colUv = [];
-
-                    for (let r = 0; r <= cRows; r++) {
-                        const v = r / cRows;
-                        const rowO = [], rowI = [], rowU = [];
-                        for (let i = 0; i <= cSegs; i++) {
-                            const u = i / cSegs;
-                            // Narrow, crisp center-front vertical gap (~4mm) between left and right collar edges
-                            const theta = (u - 0.5) * (Math.PI * 2 - 0.07) + Math.PI;
-                            const cosT = Math.cos(theta);
-
-                            const frontPointProfile = cosT > 0
-                                ? Math.max(0, 1.0 - Math.abs(Math.sin(theta)) / 0.97)   // tuyến tính theo x chính diện => mép dưới là đường chéo thẳng
-                                : 0;
-
-                            const sTop = 0.902;
-                            const sBot = THREE.MathUtils.lerp(0.835, 0.778, frontPointProfile);
-                            const sEval = THREE.MathUtils.lerp(sTop, sBot, v);
-
-                            const pNeck = AnatomicalSurfaceEngine.evalMannequinPoint(sEval, theta, state);
-                            const nRad = new THREE.Vector3(Math.sin(theta), 0.06, Math.cos(theta)).normalize();
-
-                            const standOffset = 0.0028 + v * 0.0008;
-                            const pOut = pNeck.clone().addScaledVector(nRad, standOffset);
-                            const pIn = pNeck.clone().addScaledVector(nRad, standOffset - 0.0016);
-
-                            rowO.push(pOut);
-                            rowI.push(pIn);
-                            rowU.push(new THREE.Vector2(u, v));
-                        }
-                        colOut.push(rowO);
-                        colIn.push(rowI);
-                        colUv.push(rowU);
-                    }
-                    const shirtCollarGeom = this.buildThickGridGeometry(colOut, colIn, colUv);
-                    const shirtCollarMesh = new THREE.Mesh(shirtCollarGeom, materials.shirt);
-                    shirtCollarMesh.castShadow = true;
-                    shirtCollarMesh.receiveShadow = true;
-                    group.add(shirtCollarMesh);
                 }
 
-                // D. Silk Tie with Sculpted Spherical/Teardrop Knot (matching reference image)
+                // D. Cà vạt lụa: nút thắt dạng chuông + dimple + thân có mũi nhọn
                 if (state.showTie && state.showShirt) {
-                    const pKnot = AnatomicalSurfaceEngine.evalTorsoBodySection(0.946, 0, state, false, 0);
-                    const knotGeom = new THREE.SphereGeometry(0.0145, 24, 20);
-                    knotGeom.scale(0.96, 1.06, 0.82);
-                    const knotMesh = new THREE.Mesh(knotGeom, materials.tie);
-                    knotMesh.position.set(0, pKnot.y + 0.003, pKnot.z + 0.0115);
-                    knotMesh.castShadow = true;
-                    group.add(knotMesh);
+                    const E = AnatomicalSurfaceEngine;
+                    const lerp = THREE.MathUtils.lerp, clamp = THREE.MathUtils.clamp;
+                    const ss = (a, b, x) => this.smoothstep(a, b, x);
 
-                    const tieRows = 24, tieCols = 8;
-                    const tOut = [], tIn = [], tUv = [];
-                    for (let r = 0; r <= tieRows; r++) {
-                        const v = r / tieRows;
-                        const tEval = THREE.MathUtils.lerp(0.938, 0.42, v);
-                        const halfW = v < 0.86
-                            ? THREE.MathUtils.lerp(0.009, 0.028, Math.pow(v / 0.86, 0.88))
-                            : THREE.MathUtils.lerp(0.028, 0.002, (v - 0.86) / 0.14);
+                    const TIE_THICK = state.showWaistcoat ? 0.0006 : 0.0016;
+                    const B_SHIRT = 0.0045;
+                    const CLEAR = state.showWaistcoat ? 0.0010 : 0.0004;
+                    const SHAPE_MAX = 0.0107;
 
-                        const rowO = [], rowI = [], rowU = [];
-                        for (let c = 0; c <= tieCols; c++) {
-                            const u = c / tieCols;
-                            const xOff = (u - 0.5) * 2 * halfW;
-                            const ang = xOff / (0.14 * m.chestScale);
-                            const p = AnatomicalSurfaceEngine.evalTorsoBodySection(tEval, ang, state, false, 0);
-                            const n = AnatomicalSurfaceEngine.evalTorsoNormal(tEval, ang, state, false, 0);
-                            const arch = Math.sin(u * Math.PI) * 0.0028;
-                            rowO.push(p.clone().addScaledVector(n, 0.0060 + arch));
-                            rowI.push(p.clone().addScaledVector(n, 0.0040));
-                            rowU.push(new THREE.Vector2(u, v));
+                    const capAt = (t) => E.getTieCapAt(t, state);
+                    const gileAt = (t) => E.getGileOffset(t, state);
+                    const onGile = (t) => gileAt(t) + TIE_THICK + 0.0003;   // mặt dưới cà vạt đặt trên gile
+
+                    const baseRaw = (t) => state.showWaistcoat ? lerp(B_SHIRT, onGile(t), ss(0.70, 0.58, t)) : B_SHIRT;
+                    const baseAt = (t) => Math.min(baseRaw(t), capAt(t) - CLEAR - 0.0002);
+                    const shapeKAt = (t) => clamp((capAt(t) - CLEAR - baseAt(t)) / SHAPE_MAX, 0.0, 1.0);
+                    const B = B_SHIRT;
+
+                    const softMin = (a, b, k) => {
+                        const h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+                        return lerp(b, a, h) - k * h * (1.0 - h);
+                    };
+                    const T_KNOT_TOP = 0.994, T_KNOT_BOT = 0.950;      // nút thắt: nâng lên +0.012 (cũ 0.982 / 0.938)
+                    const T_BLADE_TOP = 0.964, T_TIP = 0.43;                  // thân: bắt đầu dưới nút, mũi ở gần eo
+                    const TILE = 0.03;
+                    const KNOT_LIFT = 0.013;                               // 1 ô texture = 3cm
+
+                    // ---------- 1. NÚT THẮT ----------
+                    {
+                        const KR = 22, KC = 28;
+                        const pos = [], uv = [], ind = [];
+                        for (let r = 0; r <= KR; r++) {
+                            const v = r / KR;
+                            const t = lerp(T_KNOT_TOP, T_KNOT_BOT, v);
+                            const pb = E.evalTorsoBodySection(t, 0, state, false, 0);
+
+                            // thu tròn ở đáy (đáy nút bo) và hơi thu ở đỉnh (khuất dưới bâu)
+                            let f = 1.0;
+                            if (v > 0.88) f = Math.sqrt(Math.max(0, 1 - Math.pow((v - 0.88) / 0.12, 2)));
+                            if (v < 0.05) f = Math.min(f, lerp(0.55, 1.0, ss(0.0, 0.05, v)));
+
+                            const wFull = lerp(0.0108, 0.0185, Math.pow(ss(0.0, 0.9, v), 0.85));
+                            const dFull = 0.0080 + 0.0030 * ss(0.0, 0.7, v);
+                            const zFront = pb.z + B + 0.0105;
+                            const zc = zFront - dFull;
+
+                            for (let c = 0; c <= KC; c++) {
+                                const phi = (c / KC) * Math.PI * 2;
+                                const sP = Math.sin(phi), cP = Math.cos(phi);
+                                const x = Math.sign(sP) * Math.pow(Math.abs(sP), 0.9) * wFull * f;
+                                // nếp vải nhẹ trên mặt trước nút
+                                const crease = 0.0006 * Math.sin(v * Math.PI * 3.0) * Math.max(0, cP);
+                                const z = zc + cP * dFull * f * (cP > 0 ? 1.0 : 0.7) + crease;
+                                pos.push(x, pb.y + KNOT_LIFT, z);
+                                uv.push(x / TILE, pb.y / TILE);
+                            }
                         }
-                        tOut.push(rowO);
-                        tIn.push(rowI);
-                        tUv.push(rowU);
+                        for (let r = 0; r < KR; r++) {
+                            for (let c = 0; c < KC; c++) {
+                                const a = r * (KC + 1) + c, b = a + 1, d = a + KC + 1, e = d + 1;
+                                ind.push(a, b, e, a, e, d);
+                            }
+                        }
+                        const kg = new THREE.BufferGeometry();
+                        kg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                        kg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+                        kg.setIndex(ind);
+                        kg.computeVertexNormals();
+                        const knotMesh = new THREE.Mesh(kg, materials.tie);
+                        knotMesh.castShadow = true;
+                        knotMesh.receiveShadow = true;
+                        group.add(knotMesh);
                     }
-                    const tieBladeGeom = this.buildThickGridGeometry(tOut, tIn, tUv);
-                    const tieBladeMesh = new THREE.Mesh(tieBladeGeom, materials.tie);
-                    tieBladeMesh.castShadow = true;
-                    group.add(tieBladeMesh);
+
+                    // ---------- 2. THÂN CÀ VẠT ----------
+                    {
+                        const BR = 52, BC = 14;
+                        const sKB = (T_BLADE_TOP - T_KNOT_BOT) / (T_BLADE_TOP - T_TIP);   // s tại đáy nút
+                        const sD = sKB + 0.025;                                           // tâm dimple
+
+                        const widthAt = (s) => {
+                            const w = lerp(0.0108, 0.0415, Math.pow(ss(0.0, 0.80, s), 0.8));
+                            const sTip = 0.885;                                            // từ đây thu về mũi nhọn chữ V
+                            if (s <= sTip) return w;
+                            return Math.max(0.0006, w * (1.0 - (s - sTip) / (1.0 - sTip)));
+                        };
+
+                        const tOut = [], tIn = [], tUv = [];
+                        for (let r = 0; r <= BR; r++) {
+                            const s = r / BR;
+                            const t = lerp(T_BLADE_TOP, T_TIP, s);
+                            const halfW = widthAt(s);
+                            const rx = E.getTorsoRxAt(t, state, false);
+                            const Br = baseAt(t), kR = shapeKAt(t);
+                            const sway = 0.0010 * Math.sin(s * Math.PI * 1.3);            // lệch ngang rất nhẹ cho tự nhiên
+
+                            const pillow = 0.0012 * Math.sin(Math.PI * s);                 // phồng dọc thân
+                            const standoff = 0.0035 * ss(0.40, 1.0, s);                    // dưới ngực: cà vạt treo, không ép sát
+                            const tipLift = 0.0020 * ss(0.90, 1.0, s);                     // mũi cong nhẹ lên
+
+                            const rowO = [], rowI = [], rowU = [];
+                            for (let c = 0; c <= BC; c++) {
+                                const u = c / BC;
+                                const xOff = (u - 0.5) * 2 * halfW + sway;
+                                const ang = Math.asin(clamp(xOff / rx, -0.96, 0.96));
+                                const p = E.evalTorsoBodySection(t, ang, state, false, 0);
+                                const n = E.evalTorsoNormal(t, ang, state, false, 0);
+
+                                // mặt cắt ngang: giữa phồng, hai mép cuộn xuống
+                                const edgeShape = Math.pow(Math.sin(Math.PI * u), 0.65);
+                                const arch = 0.0026 * edgeShape * (0.55 + 0.45 * ss(0.0, 0.4, s));
+
+                                // dimple dưới nút + hai nếp xếp hai bên chân nút
+                                const gS = (x, c0, w) => Math.exp(-Math.pow((x - c0) / w, 2));
+                                const dimple = 0.0022 * gS(s, sD, 0.04) * gS(u, 0.5, 0.22);
+                                const pleat = 0.0014 * gS(s, sD, 0.06) * (1.0 - gS(u, 0.5, 0.30));
+
+                                let outer = Br + (pillow + standoff + tipLift + arch + pleat - dimple) * kR;
+                                outer = softMin(outer, capAt(t) - CLEAR, 0.0006);
+                                if (state.showWaistcoat) outer = Math.max(outer, lerp(B_SHIRT, onGile(t), ss(0.70, 0.58, t)));
+                                // nâng đầu thân cà vạt cùng nút thắt, giảm dần về 0 khi đi xuống để phần dưới vẫn treo đúng vị trí
+                                const yLift = KNOT_LIFT * (1.0 - ss(0.0, 0.35, s));
+                                const pO = p.clone().addScaledVector(n, outer); pO.y += yLift;
+                                const pI = p.clone().addScaledVector(n, outer - TIE_THICK); pI.y += yLift;
+                                rowO.push(pO);
+                                rowI.push(pI);
+                                rowU.push(new THREE.Vector2(xOff / TILE, p.y / TILE));
+                            }
+                            tOut.push(rowO); tIn.push(rowI); tUv.push(rowU);
+                        }
+                        const bladeMesh = new THREE.Mesh(this.buildThickGridGeometry(tOut, tIn, tUv), materials.tie);
+                        bladeMesh.castShadow = true;
+                        bladeMesh.receiveShadow = true;
+                        group.add(bladeMesh);
+                    }
                 }
 
                 // E. Bespoke Inner Waistcoat (Áo Gile)
@@ -2563,7 +3223,7 @@
 
                             const p = AnatomicalSurfaceEngine.evalTorsoBodySection(t, ang, state, false, 0);
                             const n = AnatomicalSurfaceEngine.evalTorsoNormal(t, ang, state, false, 0);
-                            p.addScaledVector(n, 0.0072);
+                            p.addScaledVector(n, AnatomicalSurfaceEngine.getGileOffset(t, state));
                             wPos.push(p.x, p.y, p.z);
                             wUvs.push(u * 2, v * 2);
                         }
@@ -3070,237 +3730,237 @@
                     const tShoulderIn = 0.997;
                     const tShoulderOut = THREE.MathUtils.clamp(0.958 - (state.collarWidth - 3.8) * 0.010, 0.938, 0.972);
 
-                   if (state.lapel === 'shawl') {
-    const E = AnatomicalSurfaceEngine;
-    const RF = 56, RC = 44, CC = 24;                  // hàng phía trước / hàng vòng cổ / cột
-    const vSh = 0.36;
-    const tBackInS  = 0.998;
-    const tBackOutS = THREE.MathUtils.clamp(0.962 - (state.collarWidth - 3.8) * 0.010, 0.942, 0.975);
-    const targetBackAngS = sideSign * Math.PI;
+                    if (state.lapel === 'shawl') {
+                        const E = AnatomicalSurfaceEngine;
+                        const RF = 56, RC = 44, CC = 24;                  // hàng phía trước / hàng vòng cổ / cột
+                        const vSh = 0.36;
+                        const tBackInS = 0.998;
+                        const tBackOutS = THREE.MathUtils.clamp(0.962 - (state.collarWidth - 3.8) * 0.010, 0.942, 0.975);
+                        const targetBackAngS = sideSign * Math.PI;
 
-    const SHAWL_BOW = 0.11;         // trước là 0.09, bầu hơn một chút
-const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
-    const W_ANG = 0.25;             // trọng số góc khi đo chiều dài cung trong không gian (t, ang)
-    const wMax = (state.lapelWidth / 100) * 0.78 * dbBoost * (1.0 + 0.18 * curveBelly);
-    const tTopIn  = 0.985;
-    const tTopOut = THREE.MathUtils.clamp(tGorgeIn - 0.025, 0.84, 0.91);
-    const camberAmp = 0.0016 + 0.0012 * (state.lapelRoll !== undefined ? state.lapelRoll : 0.4);
+                        const SHAWL_BOW = 0.11;         // trước là 0.09, bầu hơn một chút
+                        const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
+                        const W_ANG = 0.25;             // trọng số góc khi đo chiều dài cung trong không gian (t, ang)
+                        const wMax = (state.lapelWidth / 100) * 0.78 * dbBoost * (1.0 + 0.18 * curveBelly);
+                        const tTopIn = 0.985;
+                        const tTopOut = THREE.MathUtils.clamp(tGorgeIn - 0.025, 0.84, 0.91);
+                        const camberAmp = 0.0016 + 0.0012 * (state.lapelRoll !== undefined ? state.lapelRoll : 0.4);
 
-    const ptAt = (t, ang) => E.evalTorsoBodySection(t, ang, state, true, sideSign);
-    const lerp = THREE.MathUtils.lerp;
+                        const ptAt = (t, ang) => E.evalTorsoBodySection(t, ang, state, true, sideSign);
+                        const lerp = THREE.MathUtils.lerp;
 
-    // ---- Mép trong (giữ nguyên) ----
-    const inT = [], inA = [];
-    for (let r = 0; r <= RF; r++) {
-        const t = lerp(startT, tTopIn, r / RF);
-        inT.push(t);
-        inA.push(xToTorsoAngle(t, E.getFrontRollX(t, sideSign, state)));
-    }
+                        // ---- Mép trong (giữ nguyên) ----
+                        const inT = [], inA = [];
+                        for (let r = 0; r <= RF; r++) {
+                            const t = lerp(startT, tTopIn, r / RF);
+                            inT.push(t);
+                            inA.push(xToTorsoAngle(t, E.getFrontRollX(t, sideSign, state)));
+                        }
 
-    // ---- Hình học cung phía trước (dùng để lấy các điểm điều khiển) ----
-    const xTop = E.getFrontRollX(tTopOut, sideSign, state) + sideSign * wMax * 0.9;
-    const angTop = xToTorsoAngle(tTopOut, xTop);
-    const p0 = ptAt(startT, inA[0]);
-    const p1 = ptAt(tTopOut, angTop);
-    const xa0 = Math.abs(p0.x), xa1 = Math.abs(p1.x);
-    const cx = xa1 - xa0, cy = p1.y - p0.y;
-    const chordLen = Math.hypot(cx, cy) || 1.0;
-    const nx = cy / chordLen, ny = -cx / chordLen;
-    const sag = SHAWL_BOW * chordLen;
+                        // ---- Hình học cung phía trước (dùng để lấy các điểm điều khiển) ----
+                        const xTop = E.getFrontRollX(tTopOut, sideSign, state) + sideSign * wMax * 0.9;
+                        const angTop = xToTorsoAngle(tTopOut, xTop);
+                        const p0 = ptAt(startT, inA[0]);
+                        const p1 = ptAt(tTopOut, angTop);
+                        const xa0 = Math.abs(p0.x), xa1 = Math.abs(p1.x);
+                        const cx = xa1 - xa0, cy = p1.y - p0.y;
+                        const chordLen = Math.hypot(cx, cy) || 1.0;
+                        const nx = cy / chordLen, ny = -cx / chordLen;
+                        const sag = SHAWL_BOW * chordLen;
 
-    const bowProfile = (v) => {
-        const k = Math.log(0.5) / Math.log(SHAWL_BULGE_POS);
-        return Math.sin(Math.PI * Math.pow(v, k));
-    };
-    const angForX = (t, xa) => {
-        let lo = 0.0, hi = 1.29;
-        for (let k = 0; k < 24; k++) {
-            const mid = 0.5 * (lo + hi);
-            if (Math.abs(ptAt(t, sideSign * mid).x) < xa) lo = mid; else hi = mid;
-        }
-        return sideSign * 0.5 * (lo + hi);
-    };
-    const solveOuter = (xa, yTarget) => {
-        let lo = startT, hi = 0.998;
-        for (let k = 0; k < 22; k++) {
-            const mid = 0.5 * (lo + hi);
-            if (ptAt(mid, angForX(mid, xa)).y < yTarget) lo = mid; else hi = mid;
-        }
-        const t = 0.5 * (lo + hi);
-        return { t, ang: angForX(t, xa) };
-    };
+                        const bowProfile = (v) => {
+                            const k = Math.log(0.5) / Math.log(SHAWL_BULGE_POS);
+                            return Math.sin(Math.PI * Math.pow(v, k));
+                        };
+                        const angForX = (t, xa) => {
+                            let lo = 0.0, hi = 1.29;
+                            for (let k = 0; k < 24; k++) {
+                                const mid = 0.5 * (lo + hi);
+                                if (Math.abs(ptAt(t, sideSign * mid).x) < xa) lo = mid; else hi = mid;
+                            }
+                            return sideSign * 0.5 * (lo + hi);
+                        };
+                        const solveOuter = (xa, yTarget) => {
+                            let lo = startT, hi = 0.998;
+                            for (let k = 0; k < 22; k++) {
+                                const mid = 0.5 * (lo + hi);
+                                if (ptAt(mid, angForX(mid, xa)).y < yTarget) lo = mid; else hi = mid;
+                            }
+                            const t = 0.5 * (lo + hi);
+                            return { t, ang: angForX(t, xa) };
+                        };
 
-    // ---- Mép ngoài: MỘT spline liền mạch từ ngực -> đỉnh ve -> vai -> giữa gáy ----
-    const ctrl = [{ t: startT, a: inA[0] }];
-    for (const v of [0.25, 0.5, 0.75]) {
-        const bow = bowProfile(v) * sag;
-        const s = solveOuter(xa0 + cx * v + nx * bow, p0.y + cy * v + ny * bow);
-        ctrl.push({ t: s.t, a: s.ang });
-    }
-    ctrl.push({ t: tTopOut, a: angTop });
-    const IDX_TOP = ctrl.length - 1;
-    ctrl.push({ t: tShoulderOut, a: angShoulder });
-    ctrl.push({ t: lerp(tShoulderOut, tBackOutS, 0.5), a: lerp(angShoulder, targetBackAngS, 0.5) });
-    ctrl.push({ t: tBackOutS, a: targetBackAngS });
+                        // ---- Mép ngoài: MỘT spline liền mạch từ ngực -> đỉnh ve -> vai -> giữa gáy ----
+                        const ctrl = [{ t: startT, a: inA[0] }];
+                        for (const v of [0.25, 0.5, 0.75]) {
+                            const bow = bowProfile(v) * sag;
+                            const s = solveOuter(xa0 + cx * v + nx * bow, p0.y + cy * v + ny * bow);
+                            ctrl.push({ t: s.t, a: s.ang });
+                        }
+                        ctrl.push({ t: tTopOut, a: angTop });
+                        const IDX_TOP = ctrl.length - 1;
+                        ctrl.push({ t: tShoulderOut, a: angShoulder });
+                        ctrl.push({ t: lerp(tShoulderOut, tBackOutS, 0.5), a: lerp(angShoulder, targetBackAngS, 0.5) });
+                        ctrl.push({ t: tBackOutS, a: targetBackAngS });
 
-    const nC = ctrl.length;
-    const kn = [0];
-    for (let i = 1; i < nC; i++) {
-        kn.push(kn[i - 1] + (Math.hypot(ctrl[i].t - ctrl[i - 1].t, (ctrl[i].a - ctrl[i - 1].a) * W_ANG) || 1e-6));
-    }
-    // Tiếp tuyến kiểu Catmull-Rom không đều -> liên tục C1 tại mọi điểm nối
-    const mT = [], mA = [];
-    for (let i = 0; i < nC; i++) {
-        const i0 = Math.max(i - 1, 0), i1 = Math.min(i + 1, nC - 1);
-        const dk = (kn[i1] - kn[i0]) || 1e-6;
-        mT.push((ctrl[i1].t - ctrl[i0].t) / dk);
-        mA.push((ctrl[i1].a - ctrl[i0].a) / dk);
-    }
-    // Lấy mẫu dày + chiều dài cung tích lũy
-    const SEG = 120;
-    const sT = [], sA = [], sL = [];
-    let idxTopSample = 0;
-    for (let i = 0; i < nC - 1; i++) {
-        const h = kn[i + 1] - kn[i];
-        for (let j = (i === 0 ? 0 : 1); j <= SEG; j++) {
-            const u = j / SEG, u2 = u * u, u3 = u2 * u;
-            const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u;
-            const h01 = -2 * u3 + 3 * u2,    h11 = u3 - u2;
-            const T = h00 * ctrl[i].t + h10 * h * mT[i] + h01 * ctrl[i + 1].t + h11 * h * mT[i + 1];
-            const A = h00 * ctrl[i].a + h10 * h * mA[i] + h01 * ctrl[i + 1].a + h11 * h * mA[i + 1];
-            if (sT.length === 0) sL.push(0);
-            else sL.push(sL[sL.length - 1] + Math.hypot(T - sT[sT.length - 1], (A - sA[sA.length - 1]) * W_ANG));
-            sT.push(T); sA.push(A);
-        }
-        if (i + 1 === IDX_TOP) idxTopSample = sT.length - 1;
-    }
-    const Ltop = sL[idxTopSample], Ltot = sL[sL.length - 1];
-    const atLen = (len) => {
-        let lo = 0, hi = sL.length - 1;
-        while (hi - lo > 1) { const m = (lo + hi) >> 1; if (sL[m] < len) lo = m; else hi = m; }
-        const f = (len - sL[lo]) / ((sL[hi] - sL[lo]) || 1);
-        return { t: lerp(sT[lo], sT[hi], f), a: lerp(sA[lo], sA[hi], f) };
-    };
+                        const nC = ctrl.length;
+                        const kn = [0];
+                        for (let i = 1; i < nC; i++) {
+                            kn.push(kn[i - 1] + (Math.hypot(ctrl[i].t - ctrl[i - 1].t, (ctrl[i].a - ctrl[i - 1].a) * W_ANG) || 1e-6));
+                        }
+                        // Tiếp tuyến kiểu Catmull-Rom không đều -> liên tục C1 tại mọi điểm nối
+                        const mT = [], mA = [];
+                        for (let i = 0; i < nC; i++) {
+                            const i0 = Math.max(i - 1, 0), i1 = Math.min(i + 1, nC - 1);
+                            const dk = (kn[i1] - kn[i0]) || 1e-6;
+                            mT.push((ctrl[i1].t - ctrl[i0].t) / dk);
+                            mA.push((ctrl[i1].a - ctrl[i0].a) / dk);
+                        }
+                        // Lấy mẫu dày + chiều dài cung tích lũy
+                        const SEG = 120;
+                        const sT = [], sA = [], sL = [];
+                        let idxTopSample = 0;
+                        for (let i = 0; i < nC - 1; i++) {
+                            const h = kn[i + 1] - kn[i];
+                            for (let j = (i === 0 ? 0 : 1); j <= SEG; j++) {
+                                const u = j / SEG, u2 = u * u, u3 = u2 * u;
+                                const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u;
+                                const h01 = -2 * u3 + 3 * u2, h11 = u3 - u2;
+                                const T = h00 * ctrl[i].t + h10 * h * mT[i] + h01 * ctrl[i + 1].t + h11 * h * mT[i + 1];
+                                const A = h00 * ctrl[i].a + h10 * h * mA[i] + h01 * ctrl[i + 1].a + h11 * h * mA[i + 1];
+                                if (sT.length === 0) sL.push(0);
+                                else sL.push(sL[sL.length - 1] + Math.hypot(T - sT[sT.length - 1], (A - sA[sA.length - 1]) * W_ANG));
+                                sT.push(T); sA.push(A);
+                            }
+                            if (i + 1 === IDX_TOP) idxTopSample = sT.length - 1;
+                        }
+                        const Ltop = sL[idxTopSample], Ltot = sL[sL.length - 1];
+                        const atLen = (len) => {
+                            let lo = 0, hi = sL.length - 1;
+                            while (hi - lo > 1) { const m = (lo + hi) >> 1; if (sL[m] < len) lo = m; else hi = m; }
+                            const f = (len - sL[lo]) / ((sL[hi] - sL[lo]) || 1);
+                            return { t: lerp(sT[lo], sT[hi], f), a: lerp(sA[lo], sA[hi], f) };
+                        };
 
-    // Chia hàng theo chiều dài cung: k = 0..RF là đoạn trước, RF..RF+RC là đoạn vòng cổ
-    const total = RF + RC;
-    const outAll = [];
-    for (let k = 0; k <= total; k++) {
-        const len = k <= RF ? Ltop * (k / RF) : Ltop + (Ltot - Ltop) * ((k - RF) / RC);
-        outAll.push(atLen(len));
-    }
-    // Lọc nhẹ toàn bộ đường (kể cả chỗ nối), giữ nguyên 2 đầu
-    for (let pass = 0; pass < 14; pass++) {
-        for (let k = 1; k < total; k++) {
-            outAll[k] = {
-                t: 0.25 * outAll[k - 1].t + 0.5 * outAll[k].t + 0.25 * outAll[k + 1].t,
-                a: 0.25 * outAll[k - 1].a + 0.5 * outAll[k].a + 0.25 * outAll[k + 1].a
-            };
-        }
-    }
-    const outT = outAll.map(p => p.t);
-    const outA = outAll.map(p => p.a);
+                        // Chia hàng theo chiều dài cung: k = 0..RF là đoạn trước, RF..RF+RC là đoạn vòng cổ
+                        const total = RF + RC;
+                        const outAll = [];
+                        for (let k = 0; k <= total; k++) {
+                            const len = k <= RF ? Ltop * (k / RF) : Ltop + (Ltot - Ltop) * ((k - RF) / RC);
+                            outAll.push(atLen(len));
+                        }
+                        // Lọc nhẹ toàn bộ đường (kể cả chỗ nối), giữ nguyên 2 đầu
+                        for (let pass = 0; pass < 14; pass++) {
+                            for (let k = 1; k < total; k++) {
+                                outAll[k] = {
+                                    t: 0.25 * outAll[k - 1].t + 0.5 * outAll[k].t + 0.25 * outAll[k + 1].t,
+                                    a: 0.25 * outAll[k - 1].a + 0.5 * outAll[k].a + 0.25 * outAll[k + 1].a
+                                };
+                            }
+                        }
+                        const outT = outAll.map(p => p.t);
+                        const outA = outAll.map(p => p.a);
 
-    const makeVertex = (tEval, angEval, u, hugAmt, backRise, botExtra, camber) => {
-        const { p, n } = evalSurfaceAndNormal(tEval, angEval);
-        applyNeckHugAndIncline(p, u, angEval, hugAmt, backRise, n);
-        const outerTaper = 1.0 - 0.12 * this.smootherstep(0.68, 1.0, u);   // trước là 0.25
-        const bot = lerp(0.0023, 0.0021, u) + botExtra;
-        const top = bot + 0.0023 * outerTaper + camber;
-        return { bot: p.clone().addScaledVector(n, bot), top: p.clone().addScaledVector(n, top) };
-    };
+                        const makeVertex = (tEval, angEval, u, hugAmt, backRise, botExtra, camber) => {
+                            const { p, n } = evalSurfaceAndNormal(tEval, angEval);
+                            applyNeckHugAndIncline(p, u, angEval, hugAmt, backRise, n);
+                            const outerTaper = 1.0 - 0.12 * this.smootherstep(0.68, 1.0, u);   // trước là 0.25
+                            const bot = lerp(0.0023, 0.0021, u) + botExtra;
+                            const top = bot + 0.0023 * outerTaper + camber;
+                            return { bot: p.clone().addScaledVector(n, bot), top: p.clone().addScaledVector(n, top) };
+                        };
 
-    const outG = [], inG = [], uvG = [];
+                        const outG = [], inG = [], uvG = [];
 
-    // ---- Đoạn phía trước ----
-    for (let r = 0; r <= RF; r++) {
-        const v = r / RF;
-        const liftV = lerp(0.80, 1.0, this.smootherstep(0.0, 0.30, v));
-        const camEnv = this.smootherstep(0.0, 0.15, v);
-        const puffV = this.smootherstep(0.0, 0.22, v) * (1.0 - this.smootherstep(0.50, 1.0, v));
-        const hugAmt = this.smootherstep(0.58, 1.0, v);
-        const rowO = [], rowI = [], rowU = [];
+                        // ---- Đoạn phía trước ----
+                        for (let r = 0; r <= RF; r++) {
+                            const v = r / RF;
+                            const liftV = lerp(0.80, 1.0, this.smootherstep(0.0, 0.30, v));
+                            const camEnv = this.smootherstep(0.0, 0.15, v);
+                            const puffV = this.smootherstep(0.0, 0.22, v) * (1.0 - this.smootherstep(0.50, 1.0, v));
+                            const hugAmt = this.smootherstep(0.58, 1.0, v);
+                            const rowO = [], rowI = [], rowU = [];
 
-        for (let c = 0; c <= CC; c++) {
-            const u = c / CC;
-            const tEval   = lerp(inT[r], outT[r], u);
-            const angEval = lerp(inA[r], outA[r], u);
+                            for (let c = 0; c <= CC; c++) {
+                                const u = c / CC;
+                                const tEval = lerp(inT[r], outT[r], u);
+                                const angEval = lerp(inA[r], outA[r], u);
 
-            const puffU = this.smoothstep(0.0, 0.26, u) * (1.0 - this.smoothstep(0.26, 0.82, u));
-            const camber = camberAmp * 1.3 * Math.pow(Math.sin(u * Math.PI), 0.8) * camEnv;
-            const botExtra = liftM * liftV + rollAmp * 0.55 * puffU * puffV;
+                                const puffU = this.smoothstep(0.0, 0.26, u) * (1.0 - this.smoothstep(0.26, 0.82, u));
+                                const camber = camberAmp * 1.3 * Math.pow(Math.sin(u * Math.PI), 0.8) * camEnv;
+                                const botExtra = liftM * liftV + rollAmp * 0.55 * puffU * puffV;
 
-            const vt = makeVertex(tEval, angEval, u, hugAmt, 0.0, botExtra, camber);
-            rowI.push(vt.bot); rowO.push(vt.top);
-            rowU.push(new THREE.Vector2(u * 0.45, v * 1.6));
-        }
-        if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
-        outG.push(rowO); inG.push(rowI); uvG.push(rowU);
-    }
+                                const vt = makeVertex(tEval, angEval, u, hugAmt, 0.0, botExtra, camber);
+                                rowI.push(vt.bot); rowO.push(vt.top);
+                                rowU.push(new THREE.Vector2(u * 0.45, v * 1.6));
+                            }
+                            if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
+                            outG.push(rowO); inG.push(rowI); uvG.push(rowU);
+                        }
 
-    // ---- Đoạn vòng cổ: mép trong giữ công thức cũ, mép ngoài lấy từ spline chung ----
-    for (let r = 1; r <= RC; r++) {
-        const vCol = r / RC;
-        const sideBackWrap = this.smoothstep(0.0, 0.42, vCol);
-        const camEnv = 1.0 - 0.55 * this.smootherstep(0.0, 0.6, vCol);
+                        // ---- Đoạn vòng cổ: mép trong giữ công thức cũ, mép ngoài lấy từ spline chung ----
+                        for (let r = 1; r <= RC; r++) {
+                            const vCol = r / RC;
+                            const sideBackWrap = this.smoothstep(0.0, 0.42, vCol);
+                            const camEnv = 1.0 - 0.55 * this.smootherstep(0.0, 0.6, vCol);
 
-        // Mép trong (u = 0) đúng như bản cũ
-        let iT, iA;
-        if (vCol <= vSh) {
-            const w1 = vCol / vSh;
-            iT = lerp(inT[RF], tShoulderIn, w1);
-            iA = lerp(inA[RF], angShoulder, w1);
-        } else {
-            const w2 = (vCol - vSh) / (1.0 - vSh);
-            iT = lerp(tShoulderIn, tBackInS, this.smoothstep(0.0, 1.0, w2));
-            iA = lerp(angShoulder, targetBackAngS, w2);
-        }
-        const oT = outT[RF + r], oA = outA[RF + r];
+                            // Mép trong (u = 0) đúng như bản cũ
+                            let iT, iA;
+                            if (vCol <= vSh) {
+                                const w1 = vCol / vSh;
+                                iT = lerp(inT[RF], tShoulderIn, w1);
+                                iA = lerp(inA[RF], angShoulder, w1);
+                            } else {
+                                const w2 = (vCol - vSh) / (1.0 - vSh);
+                                iT = lerp(tShoulderIn, tBackInS, this.smoothstep(0.0, 1.0, w2));
+                                iA = lerp(angShoulder, targetBackAngS, w2);
+                            }
+                            const oT = outT[RF + r], oA = outA[RF + r];
 
-        const rowO = [], rowI = [], rowU = [];
-        for (let c = 0; c <= CC; c++) {
-            const u = c / CC;
-            const tEval   = lerp(iT, oT, u);
-            const angEval = lerp(iA, oA, u);
+                            const rowO = [], rowI = [], rowU = [];
+                            for (let c = 0; c <= CC; c++) {
+                                const u = c / CC;
+                                const tEval = lerp(iT, oT, u);
+                                const angEval = lerp(iA, oA, u);
 
-            const camber = camberAmp * Math.sin(u * Math.PI) * camEnv;
-            const vt = makeVertex(tEval, angEval, u, 1.0, 0.0050 * sideBackWrap, liftM, camber);
-            if (r === RC) { vt.bot.x = 0; vt.top.x = 0; }
-            rowI.push(vt.bot); rowO.push(vt.top);
-            rowU.push(new THREE.Vector2(u * 0.45, 1.6 + vCol * 0.8));
-        }
-        if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
-        outG.push(rowO); inG.push(rowI); uvG.push(rowU);
-    }
+                                const camber = camberAmp * Math.sin(u * Math.PI) * camEnv;
+                                const vt = makeVertex(tEval, angEval, u, 1.0, 0.0050 * sideBackWrap, liftM, camber);
+                                if (r === RC) { vt.bot.x = 0; vt.top.x = 0; }
+                                rowI.push(vt.bot); rowO.push(vt.top);
+                                rowU.push(new THREE.Vector2(u * 0.45, 1.6 + vCol * 0.8));
+                            }
+                            if (sideSign < 0) { rowO.reverse(); rowI.reverse(); rowU.reverse(); }
+                            outG.push(rowO); inG.push(rowI); uvG.push(rowU);
+                        }
 
-        // ---- Lọc mượt vị trí 3D của mép ngoài (sau hug), trọng số tăng dần về phía mép ngoài ----
-    const smoothOuterEdge = (G, passes) => {
-        const n = G.length;
-        for (let pass = 0; pass < passes; pass++) {
-            const prev = G.map(row => row.map(p => p.clone()));
-            for (let r = 1; r < n - 1; r++) {
-                for (let c = 0; c <= CC; c++) {
-                    const u = sideSign < 0 ? 1 - c / CC : c / CC;
-                    const w = this.smootherstep(0.35, 1.0, u);      // 0 ở mép trong, 1 ở mép ngoài
-                    if (w <= 0) continue;
-                    const avg = prev[r - 1][c].clone().multiplyScalar(0.25)
-                        .addScaledVector(prev[r][c], 0.5)
-                        .addScaledVector(prev[r + 1][c], 0.25);
-                    G[r][c].copy(prev[r][c]).lerp(avg, w);
-                }
-            }
-        }
-    };
-    smoothOuterEdge(outG, 10);
-    smoothOuterEdge(inG, 10);
+                        // ---- Lọc mượt vị trí 3D của mép ngoài (sau hug), trọng số tăng dần về phía mép ngoài ----
+                        const smoothOuterEdge = (G, passes) => {
+                            const n = G.length;
+                            for (let pass = 0; pass < passes; pass++) {
+                                const prev = G.map(row => row.map(p => p.clone()));
+                                for (let r = 1; r < n - 1; r++) {
+                                    for (let c = 0; c <= CC; c++) {
+                                        const u = sideSign < 0 ? 1 - c / CC : c / CC;
+                                        const w = this.smootherstep(0.35, 1.0, u);      // 0 ở mép trong, 1 ở mép ngoài
+                                        if (w <= 0) continue;
+                                        const avg = prev[r - 1][c].clone().multiplyScalar(0.25)
+                                            .addScaledVector(prev[r][c], 0.5)
+                                            .addScaledVector(prev[r + 1][c], 0.25);
+                                        G[r][c].copy(prev[r][c]).lerp(avg, w);
+                                    }
+                                }
+                            }
+                        };
+                        smoothOuterEdge(outG, 10);
+                        smoothOuterEdge(inG, 10);
 
-    const shawlGeom = this.buildThickGridGeometry(outG, inG, uvG);
-    const shawlMesh = new THREE.Mesh(shawlGeom, lapelMat);
-    shawlMesh.castShadow = true;
-    shawlMesh.receiveShadow = true;
-    group.add(shawlMesh);
-    return;
-}
+                        const shawlGeom = this.buildThickGridGeometry(outG, inG, uvG);
+                        const shawlMesh = new THREE.Mesh(shawlGeom, lapelMat);
+                        shawlMesh.castShadow = true;
+                        shawlMesh.receiveShadow = true;
+                        group.add(shawlMesh);
+                        return;
+                    }
 
                     // ====================================================================
                     // PART A: LAPEL BLADE
@@ -4155,6 +4815,10 @@ const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
 
             getDefaultState() {
                 const s = {
+                    shirtColor: '#f7f8fa',
+                    shirtCollar: 'classic',
+                    shirtFabric: 'poplin',
+
                     closure: '2_btn',
                     lapel: 'notch',
                     pocket: 'flap',
@@ -4171,6 +4835,8 @@ const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
                     ticketPocket: true,
                     showShirt: true,
                     showTie: true,
+                    tieColor: '#1e293b',
+                    tiePattern: 'stripe',
                     showWaistcoat: true,
                     showHandStitching: false,
                     openAmount: 0.0,
@@ -4544,12 +5210,13 @@ const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
                         metalness: 0.02,
                         side: THREE.DoubleSide
                     }),
-                    tie: new THREE.MeshStandardMaterial({
-                        color: 0x1e293b,
-                        roughness: 0.38,
-                        metalness: 0.15,
-                        side: THREE.DoubleSide
-                    }),
+                    tie: (() => {
+                        const tm = ProceduralFabricTextureEngine.createTieMaps(this.state.tiePattern, this.state.tieColor);
+                        return new THREE.MeshStandardMaterial({
+                            map: tm.map, bumpMap: tm.bumpMap, bumpScale: 0.01,
+                            roughness: 0.42, metalness: 0.14, side: THREE.DoubleSide
+                        });
+                    })(),
                     pocketSquare: new THREE.MeshStandardMaterial({
                         color: 0xf1f5f9,
                         roughness: 0.34,
@@ -4918,6 +5585,30 @@ const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
                 this.materials.lining.color.set(hex);
             }
 
+            refreshTieMaterial() {
+                const tm = ProceduralFabricTextureEngine.createTieMaps(this.state.tiePattern, this.state.tieColor);
+                const mat = this.materials.tie;
+                if (mat.map) mat.map.dispose();
+                if (mat.bumpMap) mat.bumpMap.dispose();
+                mat.map = tm.map;
+                mat.bumpMap = tm.bumpMap;
+                mat.needsUpdate = true;
+            }
+            setTieColor(hex) { this.state.tieColor = hex; this.refreshTieMaterial(); }
+            setTiePattern(p) { this.state.tiePattern = p; this.refreshTieMaterial(); }
+
+            // b) thêm 3 hàm, ví dụ ngay dưới setTiePattern
+            setShirtColor(hex) {
+                this.state.shirtColor = hex;
+                const p = document.getElementById('shirt-color-picker');
+                if (p && p.value !== hex) p.value = hex;
+                document.querySelectorAll('.shirt-sw').forEach(b =>
+                    b.classList.toggle('on', b.dataset.color.toLowerCase() === hex.toLowerCase()));
+                this.scheduleRebuild();
+            }
+            setShirtCollar(key) { this.state.shirtCollar = key; this.scheduleRebuild(); }
+            setShirtFabric(key) { this.state.shirtFabric = key; this.scheduleRebuild(); }
+
             setStitchColor(hex) {
                 this.state.stitchColor = hex;
                 this.materials.stitch.color.set(hex);
@@ -5081,6 +5772,14 @@ const SHAWL_BULGE_POS = 0.46;       // vị trí đỉnh gò (0..1)
                 this.setFabricColor(this.state.color);
                 this.setLiningColor(this.state.liningColor);
                 this.setButtonMaterial(this.state.buttonMaterial);
+
+                const tcp = document.getElementById('tie-color-picker'); if (tcp) tcp.value = this.state.tieColor;
+                const tsp = document.getElementById('sel-tie-pattern'); if (tsp) tsp.value = this.state.tiePattern;
+                this.refreshTieMaterial();
+
+                this.setShirtColor(this.state.shirtColor);
+                const sc = document.getElementById('sel-shirt-collar'); if (sc) sc.value = this.state.shirtCollar;
+                const sf = document.getElementById('sel-shirt-fabric'); if (sf) sf.value = this.state.shirtFabric;
                 this.rebuildSuitModel();
                 this.showToast(toastMsg);
             }
